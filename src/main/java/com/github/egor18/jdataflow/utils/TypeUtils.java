@@ -68,6 +68,14 @@ public final class TypeUtils
     }
 
     /**
+     * Checks if type is 'void' or 'java.lang.Void'.
+     */
+    public static boolean isVoid(CtTypeReference<?> type)
+    {
+        return type.getQualifiedName().equals("void") || type.getQualifiedName().equals("java.lang.Void");
+    }
+
+    /**
      * Returns size of a primitive type in bits.
      */
     public static int getPrimitiveTypeSize(CtTypeReference<?> type)

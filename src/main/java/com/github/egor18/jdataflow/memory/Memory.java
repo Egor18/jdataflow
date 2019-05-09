@@ -169,4 +169,13 @@ public class Memory
         memoryMap.clear();
         memoryPointer = 2;
     }
+
+    /**
+     * Resets all mutable elements in memory.
+     */
+    public void resetMutable()
+    {
+        memoryMap.entrySet().removeIf(e -> !(e.getKey() instanceof CtFieldReference
+                                             && ((CtFieldReference) e.getKey()).isFinal()));
+    }
 }

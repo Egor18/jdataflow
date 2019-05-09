@@ -52,6 +52,7 @@ public class Main
         String[] classpath = cmd.getOptionValues("classpath");
 
         Launcher launcher = new Launcher();
+        //launcher.getEnvironment().setNoClasspath(false);
         launcher.getEnvironment().setCommentEnabled(false);
         launcher.getEnvironment().setComplianceLevel(10);
         Arrays.stream(sources).forEach(launcher::addInputResource);

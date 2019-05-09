@@ -48,6 +48,8 @@ public class TestRunner
     public void test() throws IOException
     {
         Launcher launcher = new Launcher();
+        launcher.getEnvironment().setNoClasspath(false);
+        launcher.getEnvironment().setCommentEnabled(false);
         launcher.getEnvironment().setComplianceLevel(10);
         launcher.addInputResource(file.getAbsolutePath());
         CtModel model = launcher.buildModel();

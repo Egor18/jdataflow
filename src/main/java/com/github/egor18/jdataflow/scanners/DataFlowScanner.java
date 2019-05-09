@@ -9,16 +9,11 @@ import com.microsoft.z3.*;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
 import spoon.reflect.factory.Factory;
-import spoon.reflect.reference.CtArrayTypeReference;
-import spoon.reflect.reference.CtReference;
-import spoon.reflect.reference.CtTypeReference;
-import spoon.reflect.reference.CtVariableReference;
+import spoon.reflect.reference.*;
 
 import java.util.*;
 
-import static com.github.egor18.jdataflow.utils.CommonUtils.*;
 import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
-import static com.github.egor18.jdataflow.utils.PromotionUtils.*;
 import static com.github.egor18.jdataflow.utils.PromotionUtils.promoteNumericValue;
 import static com.github.egor18.jdataflow.utils.PromotionUtils.promoteNumericValues;
 import static com.github.egor18.jdataflow.utils.TypeUtils.*;
@@ -663,6 +658,18 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     }
 
     @Override
+    public <T> void visitCtNewClass(CtNewClass<T> newClass)
+    {
+        super.visitCtNewClass(newClass);
+
+        // Create new object
+        int nextPointer = memory.nextPointer();
+        IntExpr lambdaValue = context.mkInt(nextPointer);
+        currentResult = applyCasts(lambdaValue, newClass.getType(), newClass.getTypeCasts());
+        newClass.putMetadata("value", currentResult);
+    }
+
+    @Override
     public <T> void visitCtNewArray(CtNewArray<T> newArray)
     {
         int nextPointer = memory.nextPointer();
@@ -748,10 +755,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
-        // In the most general case the return value of a function is unknown
-        Expr returnValue = makeFreshConstFromType(context, invocation.getType());
-        currentResult = applyCasts(returnValue, invocation.getType(), invocation.getTypeCasts());
-        invocation.putMetadata("value", currentResult);
+        CtTypeReference<?> returnType = invocation.getType();
+        if (!isVoid(returnType))
+        {
+            // In the most general case the return value of a function is unknown
+            Expr returnValue = makeFreshConstFromType(context, returnType);
+            currentResult = applyCasts(returnValue, returnType, invocation.getTypeCasts());
+            invocation.putMetadata("value", currentResult);
+        }
 
         checkInvocation(invocation);
 
@@ -816,28 +827,48 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
+        solver.push();
+        Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
+        Memory oldMemory = new Memory(memory);
+        memory.resetMutable();
+
         super.visitCtClass(ctClass);
+
+        variablesMap = oldValues;
+        memory = oldMemory;
+        solver.pop();
     }
 
-    private void visitMethod(CtBlock<?> body, List<CtParameter<?>> parameters)
+    @Override
+    public void visitCtAnonymousExecutable(CtAnonymousExecutable anonymousExec)
+    {
+        visitMethod(anonymousExec.getBody(), anonymousExec.getParameters());
+    }
+
+    private void visitMethod(CtElement body, List<CtParameter<?>> parameters)
     {
         solver.push();
         Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
         Memory oldMemory = new Memory(memory);
+        BoolExpr oldConditions = currentConditions;
+        CtReference oldReturnFlagReference = returnFlagReference;
+        CtReference oldBreakFlagReference = breakFlagReference;
+        CtReference oldContinueFlagReference = continueFlagReference;
+        CtReference oldThrowFlagReference = throwFlagReference;
 
         currentResult = null;
         currentConditions = null;
 
-        returnFlagReference = new FlagReference("#NORETURN_FLAG");
+        returnFlagReference = FlagReference.makeFreshReturnReference();
         variablesMap.put(returnFlagReference, context.mkFalse());
 
-        breakFlagReference = new FlagReference("#BREAK_FLAG");
+        breakFlagReference = FlagReference.makeFreshBreakReference();
         variablesMap.put(breakFlagReference, context.mkFalse());
 
-        continueFlagReference = new FlagReference("#CONTINUE_FLAG");
+        continueFlagReference = FlagReference.makeFreshContinueReference();
         variablesMap.put(continueFlagReference, context.mkFalse());
 
-        throwFlagReference = new FlagReference("#THROW_FLAG");
+        throwFlagReference = FlagReference.makeFreshThrowReference();
         variablesMap.put(throwFlagReference, context.mkFalse());
 
         for (CtParameter<?> parameter : parameters)
@@ -858,6 +889,11 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         variablesMap = oldValues;
         memory = oldMemory;
+        currentConditions = oldConditions;
+        returnFlagReference = oldReturnFlagReference;
+        breakFlagReference = oldBreakFlagReference;
+        continueFlagReference = oldContinueFlagReference;
+        throwFlagReference = oldThrowFlagReference;
         solver.pop();
     }
 
@@ -872,6 +908,29 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         System.out.println("Analyzing method: " + method.getSimpleName());
         visitMethod(method.getBody(), method.getParameters());
+    }
+
+    @Override
+    public <T> void visitCtLambda(CtLambda<T> lambda)
+    {
+        CtElement lambdaBody = lambda.getBody() != null ? lambda.getBody() : lambda.getExpression();
+
+        solver.push();
+        Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
+        Memory oldMemory = new Memory(memory);
+        memory.resetMutable();
+
+        visitMethod(lambdaBody, lambda.getParameters());
+
+        variablesMap = oldValues;
+        memory = oldMemory;
+        solver.pop();
+
+        // Create new object for lambda
+        int nextPointer = memory.nextPointer();
+        IntExpr lambdaValue = context.mkInt(nextPointer);
+        currentResult = applyCasts(lambdaValue, lambda.getType(), lambda.getTypeCasts());
+        lambda.putMetadata("value", currentResult);
     }
 
     private void visitAssignment(CtExpression<?> left, Expr leftValue, CtTypeReference<?> leftType,

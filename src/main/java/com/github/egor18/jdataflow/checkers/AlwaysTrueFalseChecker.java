@@ -35,7 +35,7 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
 
         CtTypeReference<?> expressionType = getActualType(expression);
 
-        // Unboxing conversion:
+        // Unboxing conversion
         if (!expressionType.isPrimitive() && isCalculable(expressionType))
         {
             conditionExpr = getMemory().read(expressionType.unbox(), (IntExpr) conditionExpr);
