@@ -123,6 +123,24 @@ public final class TypeUtils
     }
 
     /**
+     * Checks if the type represents bit-vector value.
+     */
+    public static boolean isBitVector(CtTypeReference<?> type)
+    {
+        String name = type.getQualifiedName();
+        return name.equals("byte")
+            || name.equals("java.lang.Byte")
+            || name.equals("short")
+            || name.equals("java.lang.Short")
+            || name.equals("int")
+            || name.equals("java.lang.Integer")
+            || name.equals("long")
+            || name.equals("java.lang.Long")
+            || name.equals("char")
+            || name.equals("java.lang.Character");
+    }
+
+    /**
      * Checks if type is immutable (an object of that type cannot be changed after its creation).
      */
     public static boolean isImmutable(CtTypeReference<?> type)

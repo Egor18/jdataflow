@@ -2,14 +2,23 @@ package com.github.egor18.jdataflow.testcases;
 
 public class TestAnonymousClass
 {
+    public class C
+    {
+        public int f()
+        {
+            return 0;
+        }
+    }
+
+    int y;
     int z;
 
     void testAnonymousClass1()
     {
-        Object o = new Object()
+        C c = new C()
         {
             @Override
-            public int hashCode()
+            public int f()
             {
                 return 42;
             }
@@ -20,10 +29,10 @@ public class TestAnonymousClass
     {
         final int a = 0;
         z = 0;
-        Object o = new Object()
+        C c1 = new C()
         {
             @Override
-            public int hashCode()
+            public int f()
             {
                 if (z == 0) {} //ok
                 if (a == 0) {} //@ALWAYS_TRUE
@@ -33,13 +42,13 @@ public class TestAnonymousClass
         };
 
         z = 1;
-        int u = o.hashCode();
-        if (z == 42) {} //FIXME: //@ALWAYS_FALSE
+        int u = c1.f();
+        if (z == 42) {}
 
-        Object o2 = new Object()
+        C c2 = new C()
         {
             @Override
-            public int hashCode()
+            public int f()
             {
                 if (z == 0) {} //ok
                 return 42;
@@ -47,14 +56,33 @@ public class TestAnonymousClass
         };
     }
 
-    void testAnonymousClass3()
+    void testAnonymousClass3(C arg)
     {
         z = 0;
-        final int i = 42;
-        Object o = new Object()
+        C c = new C()
         {
             @Override
-            public int hashCode()
+            public int f()
+            {
+                return 42;
+            }
+        };
+
+        z = 1;
+        int u = arg.f();
+        if (u == 42) {}
+        if (z == 42) {}
+    }
+
+    void testAnonymousClass4()
+    {
+        z = 0;
+        y = 0;
+        final int i = 42;
+        C c = new C()
+        {
+            @Override
+            public int f()
             {
                 z = 1 + i;
                 return 42;
@@ -62,33 +90,37 @@ public class TestAnonymousClass
         };
         if (z == 0) {} //@ALWAYS_TRUE
         if (z == 1) {} //@ALWAYS_FALSE
-        o.hashCode();
-        if (z == 0) {} //FIXME: //@ALWAYS_TRUE
-        if (z == 1) {} //FIXME: //@ALWAYS_FALSE
+        if (y == 0) {} //@ALWAYS_TRUE
+        if (y == 1) {} //@ALWAYS_FALSE
+        c.f();
+        if (z == 0) {}
+        if (z == 1) {}
+        if (y == 0) {} //__ALWAYS_TRUE
+        if (y == 1) {} //__ALWAYS_FALSE
     }
 
-    class C {int x;}
-    void testAnonymousClass4()
+    class D { int x; }
+    void testAnonymousClass5()
     {
-        C c = new C();
-        c.x = 42;
-        Object o = new Object()
+        D d = new D();
+        d.x = 42;
+        C c = new C()
         {
             @Override
-            public int hashCode()
+            public int f()
             {
-                c.x = 1; //ok
+                d.x = 1; //ok
                 return 42;
             }
         };
-        if (c == null) {} //@ALWAYS_FALSE
-        if (c.x == 42) {} //@ALWAYS_TRUE
-        o.hashCode();
-        if (c == null) {} //@ALWAYS_FALSE
-        if (c.x == 42) {} //FIXME: //@ALWAYS_TRUE
+        if (d == null) {} //@ALWAYS_FALSE
+        if (d.x == 42) {} //@ALWAYS_TRUE
+        c.f();
+        if (d == null) {} //@ALWAYS_FALSE
+        if (d.x == 42) {}
     }
 
-    Object ooo = new Object()
+    Object object = new Object()
     {
         @Override
         public int hashCode()
@@ -108,10 +140,10 @@ public class TestAnonymousClass
         int[] arr = {1, 2, 3};
         X q = new X();
         q.x = 42;
-        Object o = new Object()
+        C c = new C()
         {
             @Override
-            public int hashCode()
+            public int f()
             {
                 if (a == 100) {} //ok
                 if (b == 142) {} //@ALWAYS_TRUE
@@ -124,8 +156,8 @@ public class TestAnonymousClass
         };
         if (a == 0) {} //@ALWAYS_TRUE
         if (a == 1) {} //@ALWAYS_FALSE
-        o.hashCode();
-        if (a == 0) {} //FIXME: //@ALWAYS_TRUE
-        if (a == 1) {} //FIXME: //@ALWAYS_FALSE
+        c.f();
+        if (a == 0) {}
+        if (a == 1) {}
     }
 }

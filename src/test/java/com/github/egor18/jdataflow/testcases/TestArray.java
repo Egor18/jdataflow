@@ -1,5 +1,7 @@
 package com.github.egor18.jdataflow.testcases;
 
+import java.util.List;
+
 public class TestArray
 {
     void testArray1()
@@ -130,6 +132,11 @@ public class TestArray
         if (cube[1][1][1] == 14) {} //@ALWAYS_TRUE
         if (cube[2][1][0] == 22) {} //@ALWAYS_TRUE
         if (cube[0][1][2] == 6) {} //@ALWAYS_TRUE
+
+        int[][][] cube2 = cube;
+        if (cube2[1][2][2] == 18) {} //@ALWAYS_TRUE
+        if (cube2[1] == cube[1]) {} //@ALWAYS_TRUE
+        if (cube2[1] == cube2[1]) {} //@ALWAYS_TRUE
     }
 
     void testArray11()
@@ -307,5 +314,75 @@ public class TestArray
         if (arr1[0] == 2) {} //@ALWAYS_TRUE
         if (++arr1[0] == 3) {} //@ALWAYS_TRUE
         if (arr1[0] == 3) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayIndexUnboxing1()
+    {
+        int[] arr = {1, 2, 3};
+        Integer i = 1;
+        arr[i] = 5;
+        if (arr[i] == 5) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayIndirectReset1(List<Integer> elements)
+    {
+        int[] arr = {1, 2, 3};
+        elements.forEach(e -> arr[e] = e);
+        if (arr[0] == 1) {} //ok
+        if (arr[1] == 2) {} //ok
+        if (arr[2] == 3) {} //ok
+    }
+
+    void testArrayIndirectReset2(List<Integer> elements)
+    {
+        long[] arr = {1, 2, 3};
+        elements.forEach(e -> arr[e] = e);
+        if (arr[0] == 1) {} //ok
+        if (arr[1] == 2) {} //ok
+        if (arr[2] == 3) {} //ok
+    }
+
+    void testArrayIndirectReset3(List<Integer> elements)
+    {
+        float[] arr = {1, 2, 3};
+        elements.forEach(e -> arr[e] = e);
+        if (arr[0] == 1) {} //ok
+        if (arr[1] == 2) {} //ok
+        if (arr[2] == 3) {} //ok
+    }
+
+    void testArrayInitializers1()
+    {
+        int[] arr1 = {1, 2, 3};
+        if (arr1[1] == 2) {} //@ALWAYS_TRUE
+        long[] arr2 = {1, 2, 3};
+        if (arr2[1] == 2) {} //@ALWAYS_TRUE
+        float[] arr3 = {1, 2, 3};
+        if (arr3[1] == 2) {}
+        double[] arr4 = {1, 2, 3};
+        if (arr4[1] == 2) {}
+
+        int[] arr5 = {1, 'c', 2};
+        if (arr5[0] == 1) {} //@ALWAYS_TRUE
+        if (arr5[1] == 'c') {} //@ALWAYS_TRUE
+
+        Integer[] arr6 = {1, new Integer(2), 3};
+        if (arr6[0] == 1) {} //@ALWAYS_TRUE
+        if (arr6[1] == 2) {} //@ALWAYS_TRUE
+        if (arr6[2] == 3) {} //@ALWAYS_TRUE
+
+        int[] arr7 = {1, new Integer(2), 3};
+        if (arr7[0] == 1) {} //@ALWAYS_TRUE
+        if (arr7[1] == 2) {} //@ALWAYS_TRUE
+        if (arr7[2] == 3) {} //@ALWAYS_TRUE
+
+        float[] arr8 = {1.0f, 2.0f, 3.0f};
+        if (arr8[0] == 2.0f) {}
+        float[] arr9 = {1.0f, new Float(2.0f), 3.0f};
+        if (arr9[0] == 2.0f) {}
+        Float[] arr10 = {new Float(1),new Float(2),new Float(3)};
+        if (arr10[0] == 2.0f) {}
+        Float[] arr11 = {1.0f, 2.0f, 3.0f};
+        if (arr11[0] == 2.0f) {}
     }
 }

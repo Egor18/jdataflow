@@ -138,4 +138,13 @@ public class TestReferences
             if (this.x == x) {} //@ALWAYS_TRUE
         }
     }
+
+    class Base {}
+    class Derived extends Base {}
+    void testBaseDerivedReferences(Base a, Derived b)
+    {
+        if (a == b) {} //ok
+        a = b;
+        if (a == b) {} //@ALWAYS_TRUE
+    }
 }

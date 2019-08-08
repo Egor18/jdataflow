@@ -7,9 +7,13 @@ import com.github.egor18.jdataflow.misc.FlagReference;
 import com.github.egor18.jdataflow.utils.TypeUtils;
 import com.microsoft.z3.*;
 import spoon.reflect.code.*;
+import spoon.reflect.cu.SourcePosition;
+import spoon.reflect.cu.position.NoSourcePosition;
 import spoon.reflect.declaration.*;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.*;
+import spoon.reflect.visitor.filter.AbstractFilter;
+import spoon.reflect.visitor.filter.TypeFilter;
 
 import java.util.*;
 
@@ -34,6 +38,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     // Maps variable reference to the latest corresponding value
     private Map<CtReference, Expr> variablesMap = new HashMap<>();
+
+    // Stack of indirect modifications (i.e. within inner classes and lambdas) of current methods
+    private Stack<List<CtElement>> currentMethodsIndirectModifications = new Stack<>();
 
     // z3 solver context
     private Context context;
@@ -137,9 +144,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
      */
     private BitVecExpr castBV(BitVecExpr bitVec, CtTypeReference<?> fromType, CtTypeReference<?> toType)
     {
-        if (!isCalculable(toType))
+        if (!isBitVector(fromType) || !isBitVector(toType))
         {
-            return null;
+            throw new RuntimeException("Invalid castBV arguments");
         }
 
         int newSize = TypeUtils.getPrimitiveTypeSize(toType);
@@ -173,28 +180,39 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         if (expr == null)
         {
-            return null;
+            Sort sort = TypeUtils.getTypeSort(context, originalType);
+            expr = context.mkFreshConst("", sort);
         }
 
         for (int i = casts.size() - 1; i >= 0; i--)
         {
             CtTypeReference<?> castType = casts.get(i);
-            if (expr instanceof BitVecExpr)
-            {
-                expr = castBV((BitVecExpr) expr, originalType, castType);
-            }
-            else if (expr instanceof RealExpr)
-            {
-                // We don't actually calculate floats right now => create value from type
-                expr = makeFreshConstFromType(context, castType);
-            }
-            else if (expr instanceof IntExpr)
+
+            if (expr instanceof IntExpr)
             {
                 if (castType.isPrimitive())
                 {
                     // Unboxing conversion
                     expr = memory.read(originalType.unbox(), (IntExpr) expr);
                 }
+            }
+
+            if (expr instanceof BitVecExpr)
+            {
+                if (isBitVector(originalType) && isBitVector(castType))
+                {
+                    expr = castBV((BitVecExpr) expr, originalType, castType);
+                }
+                else
+                {
+                    Sort sort = TypeUtils.getTypeSort(context, castType);
+                    expr = context.mkFreshConst("", sort);
+                }
+            }
+            else if (expr instanceof RealExpr)
+            {
+                // We don't actually calculate floats right now => create value from type
+                expr = makeFreshConstFromType(context, castType);
             }
 
             // Boxing conversion
@@ -691,10 +709,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         {
             scan(arrayElement);
             Expr arrayElementExpr = currentResult;
-            if (arrayElementExpr instanceof BitVecExpr)
-            {
-                arrayElementExpr = castBV((BitVecExpr) arrayElementExpr, getActualType(arrayElement), componentType);
-            }
+            CtTypeReference<?> arrayElementType = getActualType(arrayElement);
+            arrayElementExpr = applyCasts(arrayElementExpr, arrayElementType, Collections.singletonList(componentType));
             memory.writeArray((CtArrayTypeReference) newArray.getType(), arrayValue, context.mkBV(i, 32), arrayElementExpr);
             i++;
         }
@@ -755,6 +771,30 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
+        // Reset this
+        IntNum thisExpr = context.mkInt(Memory.thisPointer());
+        CtTypeReference thisType = invocation.getParent(CtClass.class).getReference();
+        memory.resetObject(thisType, thisExpr);
+
+        // Reset all variables that could be possibly modified indirectly
+        if (!currentMethodsIndirectModifications.isEmpty())
+        {
+            ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
+            for (CtElement indirectModification : currentMethodsIndirectModifications.peek())
+            {
+                // If the indirect modification occurs after the invocation, it could not yet affect variables
+                SourcePosition modificationPosition = indirectModification.getPosition();
+                SourcePosition invocationPosition = invocation.getPosition();
+                if (modificationPosition == null || invocationPosition == null
+                        || modificationPosition instanceof NoSourcePosition || invocationPosition instanceof NoSourcePosition
+                        || !modificationPosition.isValidPosition() || !invocationPosition.isValidPosition()
+                        || modificationPosition.getSourceStart() <= invocation.getPosition().getSourceEnd())
+                {
+                    resetScanner.scan(indirectModification);
+                }
+            }
+        }
+
         CtTypeReference<?> returnType = invocation.getType();
         if (!isVoid(returnType))
         {
@@ -799,6 +839,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             variableWrite.setType(localVariable.getType());
             assignment.setAssigned(variableWrite);
             assignment.setType(localVariable.getType());
+            assignment.setParent(localVariable.getParent());
             visitCtAssignment(assignment);
         }
         else
@@ -873,16 +914,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         for (CtParameter<?> parameter : parameters)
         {
-            if (parameter.getType().isPrimitive())
-            {
-                Sort sort = TypeUtils.getTypeSort(context, parameter.getType());
-                variablesMap.put(parameter.getReference(), context.mkFreshConst("", sort));
-            }
-            else
-            {
-                Expr address = context.mkFreshConst("", context.getIntSort());
-                variablesMap.put(parameter.getReference(), address);
-            }
+            variablesMap.put(parameter.getReference(), makeFreshConstFromType(context, parameter.getType()));
         }
 
         scan(body);
@@ -903,11 +935,39 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         visitMethod(constructor.getBody(), constructor.getParameters());
     }
 
+    /**
+     * Collects all indirect modifications (i.e. within inner classes and lambdas) in the method.
+     */
+    private <T> List<CtElement> collectIndirectModifications(CtMethod<T> method)
+    {
+        List<CtClass> localClasses = method.getElements(new TypeFilter<>(CtClass.class));
+        List<CtLambda> lambdas = method.getElements(new TypeFilter<>(CtLambda.class));
+        AbstractFilter<CtElement> modificationsFilter = new AbstractFilter<CtElement>()
+        {
+            @Override
+            public boolean matches(CtElement element)
+            {
+                return element instanceof CtFieldWrite
+                       || element instanceof CtArrayWrite
+                       || element instanceof CtInvocation
+                       || element instanceof CtConstructorCall;
+            }
+        };
+
+        List<CtElement> indirectModifications = new ArrayList<>();
+        localClasses.forEach(c -> indirectModifications.addAll(c.filterChildren(modificationsFilter).list()));
+        lambdas.forEach(l -> indirectModifications.addAll(l.filterChildren(modificationsFilter).list()));
+
+        return indirectModifications;
+    }
+
     @Override
     public <T> void visitCtMethod(CtMethod<T> method)
     {
         System.out.println("Analyzing method: " + method.getSimpleName());
+        currentMethodsIndirectModifications.push(collectIndirectModifications(method));
         visitMethod(method.getBody(), method.getParameters());
+        currentMethodsIndirectModifications.pop();
     }
 
     @Override
@@ -946,46 +1006,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             leftReference = ((CtVariableWrite<?>) left).getVariable();
         }
 
-        if (leftType.isPrimitive())
-        {
-            if (isCalculable(leftType) && rightValue != null)
-            {
-                // Unboxing conversion
-                if (!rightType.isPrimitive())
-                {
-                    rightValue = memory.read(rightType.unbox(), (IntExpr) rightValue);
-                }
-
-                if (rightValue instanceof BitVecExpr)
-                {
-                    rightValue = castBV((BitVecExpr) rightValue, rightType, leftType);
-                }
-            }
-            else
-            {
-                // left or right is double or float => create value from type
-                Sort sort = TypeUtils.getTypeSort(context, leftType);
-                rightValue = context.mkFreshConst("", sort);
-            }
-        }
-        else
-        {
-            if (rightType.isPrimitive())
-            {
-                // Boxing conversion
-                int nextPointer = memory.nextPointer();
-                IntExpr index =  context.mkInt(nextPointer);
-                if (isCalculable(leftType) && rightValue != null)
-                {
-                    if (rightValue instanceof BitVecExpr)
-                    {
-                        rightValue = castBV((BitVecExpr) rightValue, rightType, leftType);
-                    }
-                    memory.write(leftType.unbox(), index, rightValue);
-                }
-                rightValue = index;
-            }
-        }
+        rightValue = applyCasts(rightValue, rightType, Collections.singletonList(leftType));
 
         if (left instanceof CtFieldWrite)
         {
@@ -999,6 +1020,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             CtExpression<Integer> index = ((CtArrayWrite<?>) left).getIndexExpression();
             CtTypeReference<?> indexType = getActualType(index);
             Expr indexExpr = (Expr) index.getMetadata("value");
+
+            // Unboxing conversion
+            if (!indexType.isPrimitive())
+            {
+                indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
+            }
+
             indexExpr = promoteNumericValue(context, indexExpr, indexType);
             memory.writeArray((CtArrayTypeReference) leftReference, (IntExpr) leftValue, indexExpr, rightValue);
         }
@@ -1150,6 +1178,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         CtTypeReference<?> indexType = getActualType(arrayRead.getIndexExpression());
         scan(index);
         Expr indexExpr = currentResult;
+
+        // Unboxing conversion
+        if (!indexType.isPrimitive())
+        {
+            indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
+        }
+
         indexExpr = promoteNumericValue(context, indexExpr, indexType);
         CtArrayTypeReference<?> arrayType = (CtArrayTypeReference) arrayRead.getTarget().getType();
         currentResult = memory.readArray(arrayType, targetExpr, indexExpr);

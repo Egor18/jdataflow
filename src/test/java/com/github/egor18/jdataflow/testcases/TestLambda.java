@@ -86,19 +86,25 @@ public class TestLambda
     {
         int[] arr = {0};
         list.forEach(e -> arr[0] += e);
-        if (arr[0] == 0) {} //FIXME: //@ALWAYS_TRUE
+        if (arr[0] == 0) {} //ok
     }
 
+    int y;
     int z;
     void testLambdaAssignment1()
     {
         z = 0;
+        y = 0;
         BiFunction<Integer,Integer,Integer> sum = (v1, v2) -> z = v1 + v2;
         if (z == 0) {} //@ALWAYS_TRUE
         if (z == 5) {} //@ALWAYS_FALSE
+        if (y == 0) {} //@ALWAYS_TRUE
+        if (y == 5) {} //@ALWAYS_FALSE
         sum.apply(1, 2);
-        if (z == 0) {} //FIXME: //@ALWAYS_TRUE
-        if (z == 5) {} //FIXME: //@ALWAYS_FALSE
+        if (z == 0) {}
+        if (z == 5) {}
+        if (y == 0) {}
+        if (y == 5) {}
     }
 
     void testLambdaAssignment2()
@@ -109,11 +115,21 @@ public class TestLambda
         if (z == 5) {} //@ALWAYS_FALSE
         z = 1;
         sum.apply(1, 2);
-        if (z == 0) {} //FIXME: //@ALWAYS_FALSE
-        if (z == 5) {} //FIXME: //@ALWAYS_FALSE
+        if (z == 0) {}
+        if (z == 5) {}
     }
 
-    void testLambdaAssignment3()
+    void testLambdaAssignment3(BiFunction<Integer,Integer,Integer> sum)
+    {
+        if (z == 0) {}
+        if (z == 5) {}
+        z = 1;
+        sum.apply(1, 2);
+        if (z == 0) {}
+        if (z == 5) {}
+    }
+
+    void testLambdaAssignment4()
     {
         z = 0;
         Consumer<Integer> consumer = (i) ->
@@ -123,6 +139,6 @@ public class TestLambda
         consumer.accept(42);
         z = 1;
         consumer.accept(42);
-        if (z == 0) {} //FIXME: //@ALWAYS_FALSE
+        if (z == 0) {}
     }
 }

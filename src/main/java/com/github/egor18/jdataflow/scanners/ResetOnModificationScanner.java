@@ -48,8 +48,11 @@ public class ResetOnModificationScanner extends CtScanner
         CtArrayTypeReference<?> reference = (CtArrayTypeReference) arrayWrite.getTarget().getType();
         IntExpr targetExpr = getTargetValue(context, variablesMap, memory, arrayWrite.getTarget());
         BitVecExpr indexExpr = (BitVecExpr) context.mkFreshConst("", context.mkBitVecSort(32));
-        Expr valueExpr = context.mkFreshConst("", getTypeSort(context, arrayWrite.getType()));
-        memory.writeArray(reference, targetExpr, indexExpr, valueExpr);
+        if (targetExpr != null && indexExpr != null)
+        {
+            Expr valueExpr = context.mkFreshConst("", getTypeSort(context, arrayWrite.getType()));
+            memory.writeArray(reference, targetExpr, indexExpr, valueExpr);
+        }
     }
 
     @Override
@@ -59,7 +62,10 @@ public class ResetOnModificationScanner extends CtScanner
         CtFieldReference<T> reference = fieldWrite.getVariable();
         Sort sort = getTypeSort(context, reference.getType());
         IntExpr targetExpr = getTargetValue(context, variablesMap, memory, fieldWrite.getTarget());
-        memory.write(reference, targetExpr, context.mkFreshConst("", sort));
+        if (targetExpr != null)
+        {
+            memory.write(reference, targetExpr, context.mkFreshConst("", sort));
+        }
     }
 
     @Override
