@@ -396,4 +396,19 @@ public class TestArray
         Float[] arr11 = {1.0f, 2.0f, 3.0f};
         if (arr11[0] == 2.0f) {}
     }
+
+    class C
+    {
+        public int x;
+        public native int f();
+    }
+
+    void testArrayIndexReset(C[] objects)
+    {
+        for (int i = 0; i < objects.length; i++)
+        {
+            int a = objects[42].f();
+            int b = objects[i].f();
+        }
+    }
 }

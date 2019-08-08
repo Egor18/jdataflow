@@ -49,6 +49,10 @@ public final class CommonUtils
                 CtArrayRead arrayRead = (CtArrayRead) t;
                 CtExpression index = arrayRead.getIndexExpression();
                 Expr arrayIndex = (Expr) index.getMetadata("value");
+                if (arrayIndex == null)
+                {
+                    arrayIndex = context.mkFreshConst("", context.mkBitVecSort(32));
+                }
                 targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) arrayRead.getTarget().getType(), targetValue, arrayIndex);
             }
             else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)

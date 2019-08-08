@@ -9,9 +9,7 @@ import spoon.reflect.visitor.CtScanner;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.egor18.jdataflow.utils.CommonUtils.*;
 import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
-import static com.github.egor18.jdataflow.utils.TypeUtils.*;
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
 import static com.github.egor18.jdataflow.utils.TypeUtils.getTypeSort;
 import static com.github.egor18.jdataflow.utils.TypeUtils.isImmutable;
