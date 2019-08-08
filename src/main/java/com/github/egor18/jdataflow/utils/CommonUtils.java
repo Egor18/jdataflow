@@ -30,7 +30,11 @@ public final class CommonUtils
             targets.addFirst(target);
             target = ((CtTargetedExpression) target).getTarget();
         }
-        targets.addFirst(target);
+
+        if (target != null)
+        {
+            targets.addFirst(target);
+        }
 
         // Traverse all targets left to right
         IntExpr targetValue = null;
@@ -47,6 +51,10 @@ public final class CommonUtils
                 Expr arrayIndex = (Expr) index.getMetadata("value");
                 targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) arrayRead.getTarget().getType(), targetValue, arrayIndex);
             }
+            else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)
+            {
+                targetValue = context.mkInt(Memory.thisPointer());
+            }
             else if (t instanceof CtVariableRead)
             {
                 targetValue = (IntExpr) variablesMap.get(((CtVariableRead) t).getVariable());
@@ -59,10 +67,6 @@ public final class CommonUtils
                     targetValue = (IntExpr) context.mkFreshConst("", context.getIntSort());
                     variablesMap.put(getActualType(t), targetValue);
                 }
-            }
-            else if (t instanceof CtThisAccess)
-            {
-                targetValue = context.mkInt(Memory.thisPointer());
             }
             else
             {
