@@ -272,4 +272,29 @@ public class TestInvocation
         if (m1.x == 1) {} //@ALWAYS_TRUE
         if (m2.x == 42) {} //ok
     }
+
+    class TestSuperReset
+    {
+        class Base
+        {
+            public int x;
+            public void f() {}
+        }
+
+        class Derived extends Base
+        {
+            public int x;
+            public native void g();
+
+            @Override
+            public void f()
+            {
+                this.x = 1;
+                super.x = 1;
+                g();
+                if (super.x == 1) {} //ok
+                if (this.x == 1) {} //ok
+            }
+        }
+    }
 }

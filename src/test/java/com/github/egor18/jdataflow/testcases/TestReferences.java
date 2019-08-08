@@ -147,4 +147,29 @@ public class TestReferences
         a = b;
         if (a == b) {} //@ALWAYS_TRUE
     }
+
+    class TestSuper
+    {
+        class Base
+        {
+            public int x;
+            public int y;
+            public void f() {}
+        }
+
+        class Derived extends Base
+        {
+            public int y;
+
+            @Override
+            public void f()
+            {
+                super.f();
+                super.x = 42;
+                if (super.x == 42) {} //@ALWAYS_TRUE
+                if (super.x == this.x) {} //@ALWAYS_TRUE
+                if (super.y == this.y) {} //ok
+            }
+        }
+    }
 }

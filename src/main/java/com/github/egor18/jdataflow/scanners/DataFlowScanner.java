@@ -776,6 +776,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         CtTypeReference thisType = invocation.getParent(CtClass.class).getReference();
         memory.resetObject(thisType, thisExpr);
 
+        // Reset super
+        CtTypeReference superType = thisType.getSuperclass();
+        if (superType != null)
+        {
+            memory.resetObject(superType, thisExpr);
+        }
+
         // Reset all variables that could be possibly modified indirectly
         if (!currentMethodsIndirectModifications.isEmpty())
         {
