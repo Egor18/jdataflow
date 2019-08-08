@@ -95,8 +95,8 @@ public class TestAnonymousClass
         c.f();
         if (z == 0) {}
         if (z == 1) {}
-        if (y == 0) {} //__ALWAYS_TRUE
-        if (y == 1) {} //__ALWAYS_FALSE
+        if (y == 0) {}
+        if (y == 1) {}
     }
 
     class D { int x; }
