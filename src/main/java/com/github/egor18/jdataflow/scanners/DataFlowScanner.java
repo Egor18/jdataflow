@@ -716,6 +716,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
 
         currentResult = applyCasts(arrayValue, newArray.getType(), newArray.getTypeCasts());
+        newArray.putMetadata("value", currentResult);
     }
 
     /**
@@ -1149,12 +1150,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     public <T> void visitCtThisAccess(CtThisAccess<T> thisAccess)
     {
         currentResult = context.mkInt(Memory.thisPointer());
+        thisAccess.putMetadata("value", currentResult);
     }
 
     @Override
-    public <T> void visitCtSuperAccess(CtSuperAccess<T> f)
+    public <T> void visitCtSuperAccess(CtSuperAccess<T> superAccess)
     {
         currentResult = context.mkInt(Memory.thisPointer());
+        superAccess.putMetadata("value", currentResult);
     }
 
     @Override
@@ -1163,6 +1166,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         scan(fieldRead.getTarget());
         IntExpr targetExpr = getTargetValue(context, variablesMap, memory, fieldRead.getTarget());
         currentResult = memory.read(fieldRead.getVariable(), targetExpr);
+        fieldRead.putMetadata("value", currentResult);
         checkFieldRead(fieldRead);
         visitDereference(targetExpr);
     }
@@ -1172,6 +1176,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         scan(fieldWrite.getTarget());
         currentResult = getTargetValue(context, variablesMap, memory, fieldWrite.getTarget());
+        fieldWrite.putMetadata("value", currentResult);
         checkFieldWrite(fieldWrite);
         visitDereference(currentResult);
     }
@@ -1185,6 +1190,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         CtTypeReference<?> indexType = getActualType(arrayRead.getIndexExpression());
         scan(index);
         Expr indexExpr = currentResult;
+        index.putMetadata("value", currentResult);
 
         // Unboxing conversion
         if (!indexType.isPrimitive())
@@ -1195,6 +1201,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         indexExpr = promoteNumericValue(context, indexExpr, indexType);
         CtArrayTypeReference<?> arrayType = (CtArrayTypeReference) arrayRead.getTarget().getType();
         currentResult = memory.readArray(arrayType, targetExpr, indexExpr);
+        arrayRead.putMetadata("value", currentResult);
         checkArrayRead(arrayRead);
         visitDereference(targetExpr);
     }
@@ -1205,6 +1212,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         scan(arrayWrite.getIndexExpression());
         scan(arrayWrite.getTarget());
         currentResult = getTargetValue(context, variablesMap, memory, arrayWrite.getTarget());
+        arrayWrite.putMetadata("value", currentResult);
         checkArrayWrite(arrayWrite);
         visitDereference(currentResult);
     }

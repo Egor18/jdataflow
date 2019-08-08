@@ -13,6 +13,7 @@ public class TestFields
     private class X4 { X2 t; }
     public static int staticInteger;
     public static C1 staticObject;
+    public boolean booleanField = false;
 
     void testFields1()
     {
@@ -207,6 +208,12 @@ public class TestFields
         if (a.c3.c2 == null) {} //ok
         if (a.c3.c2.c1 == null) {} //ok
         if (a.c3.c2.c1.x == 5) {} //ok
+    }
+
+    void testFields17()
+    {
+        if (this.booleanField && true) {} //@ALWAYS_TRUE
+        if (true && this.booleanField) {} //@ALWAYS_TRUE
     }
 
     void testUnknownFields1(X2 a)

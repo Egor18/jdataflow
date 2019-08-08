@@ -214,6 +214,17 @@ public class TestArray
         if (arr[b] == 42) {} //ok
     }
 
+    void testArray19()
+    {
+        boolean[] arr = {false, true, false};
+        if (arr[1] && true) {} //@ALWAYS_TRUE
+    }
+
+    void testArray20()
+    {
+        if (new int[] {1,2,3} == null) {} //@ALWAYS_FALSE
+    }
+
     public int[] publicArrayField;
     void testArrayField1()
     {

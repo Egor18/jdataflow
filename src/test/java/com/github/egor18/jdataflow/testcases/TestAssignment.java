@@ -87,7 +87,7 @@ public class TestAssignment
         if (x == -23) {} //@ALWAYS_TRUE
     }
 
-    void testAssignment11()
+    void testAssignmentn11()
     {
         int a = 5;
         boolean b = a > 3; //@ALWAYS_TRUE
@@ -96,5 +96,11 @@ public class TestAssignment
         c = a > 3; //@ALWAYS_TRUE
 
         boolean d = (a > 3 || true); //@ALWAYS_TRUE
+    }
+
+    void testAssignment12()
+    {
+        boolean b = false;
+        if ((b = true) && true) {} //@ALWAYS_TRUE
     }
 }
