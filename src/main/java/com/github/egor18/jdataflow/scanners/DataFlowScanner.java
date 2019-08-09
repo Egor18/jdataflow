@@ -192,8 +192,16 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             {
                 if (castType.isPrimitive())
                 {
-                    // Unboxing conversion
-                    expr = memory.read(originalType.unbox(), (IntExpr) expr);
+                    if (isCalculable(originalType))
+                    {
+                        // Unboxing conversion
+                        expr = memory.read(originalType.unbox(), (IntExpr) expr);
+                    }
+                    else
+                    {
+                        // Casting Object to primitive => create value from type
+                        expr = makeFreshConstFromType(context, castType);
+                    }
                 }
             }
 
@@ -218,19 +226,27 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             // Boxing conversion
             if (!castType.isPrimitive() && originalType.isPrimitive())
             {
-                int nextPointer = memory.nextPointer();
-                IntExpr index =  context.mkInt(nextPointer);
-                if (isCalculable(castType) && isCalculable(originalType) && expr != null)
-                {
-                    memory.write(castType.unbox(), index, expr);
-                }
-                expr = index;
+                expr = box(expr, castType);
             }
 
             originalType = castType;
         }
 
         return expr;
+    }
+
+    /**
+     * Applies boxing operation to the expression, returns resulting expression.
+     */
+    private Expr box(Expr expr, CtTypeReference<?> type)
+    {
+        int nextPointer = memory.nextPointer();
+        IntExpr index =  context.mkInt(nextPointer);
+        if (isCalculable(type) && expr != null)
+        {
+            memory.write(type.unbox(), index, expr);
+        }
+        return index;
     }
 
     /**
@@ -514,13 +530,88 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         BranchData thenBranchData = visitBranch(conditionExpr, conditional.getThenExpression());
         Expr thenExpr = currentResult;
+
+        BranchData elseBranchData = visitBranch(context.mkNot(conditionExpr), conditional.getElseExpression());
+        Expr elseExpr = currentResult;
+
+        CtTypeReference<?> thenType = getActualType(conditional.getThenExpression());
+        CtTypeReference<?> elseType = getActualType(conditional.getElseExpression());
+
+        // There are 3 kinds of conditional expressions:
+        // If both the second and the third operand expressions are boolean expressions, the conditional expression is a boolean conditional expression.
+        // If both the second and the third operand expressions are numeric expressions, the conditional expression is a numeric conditional expression.
+        // Otherwise, the conditional expression is a reference conditional expression.
+
+        if (isBoolean(thenType) && isBoolean(elseType))
+        {
+            if (thenType.isPrimitive() || elseType.isPrimitive())
+            {
+                // Unboxing conversion
+                if (!thenType.isPrimitive())
+                {
+                    thenExpr = memory.read(thenType.unbox(), (IntExpr) thenExpr);
+                }
+
+                // Unboxing conversion
+                if (!elseType.isPrimitive())
+                {
+                    elseExpr = memory.read(elseType.unbox(), (IntExpr) elseExpr);
+                }
+            }
+        }
+        else if (isNumeric(thenType) && isNumeric(elseType))
+        {
+            if (isCalculable(thenType) && isCalculable(elseType))
+            {
+                if (thenType.isPrimitive() || elseType.isPrimitive())
+                {
+                    // Unboxing conversion
+                    if (!thenType.isPrimitive())
+                    {
+                        thenExpr = memory.read(thenType.unbox(), (IntExpr) thenExpr);
+                    }
+
+                    // Unboxing conversion
+                    if (!elseType.isPrimitive())
+                    {
+                        elseExpr = memory.read(elseType.unbox(), (IntExpr) elseExpr);
+                    }
+                }
+
+                if (thenExpr instanceof BitVecExpr && elseExpr instanceof BitVecExpr)
+                {
+                    Expr[] result = promoteNumericValues(context, thenExpr, thenType, elseExpr, elseType);
+                    thenExpr = result[0];
+                    elseExpr = result[1];
+                }
+            }
+            else
+            {
+                // At least one of the arguments is floating point number => create values of real sort
+                thenExpr = makeFreshConstFromType(context, factory.Type().doubleType());
+                elseExpr = makeFreshConstFromType(context, factory.Type().doubleType());
+            }
+        }
+        else
+        {
+            // Box if necessary
+            if (thenType.isPrimitive())
+            {
+                thenExpr = box(thenExpr, thenType);
+            }
+
+            // Box if necessary
+            if (elseType.isPrimitive())
+            {
+                elseExpr = box(elseExpr, elseType);
+            }
+        }
+
         solver.push();
         solver.add(conditionExpr);
         checkConditionalThenExpression(conditional.getThenExpression());
         solver.pop();
 
-        BranchData elseBranchData = visitBranch(context.mkNot(conditionExpr), conditional.getElseExpression());
-        Expr elseExpr = currentResult;
         solver.push();
         solver.add(context.mkNot(conditionExpr));
         checkConditionalElseExpression(conditional.getElseExpression());

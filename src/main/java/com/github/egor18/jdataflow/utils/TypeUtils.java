@@ -68,11 +68,57 @@ public final class TypeUtils
     }
 
     /**
+     * Checks if type is 'byte' or 'java.lang.Byte'.
+     */
+    public static boolean isByte(CtTypeReference<?> type)
+    {
+        return type.getQualifiedName().equals("byte") || type.getQualifiedName().equals("java.lang.Byte");
+    }
+
+    /**
+     * Checks if type is 'short' or 'java.lang.Short'.
+     */
+    public static boolean isShort(CtTypeReference<?> type)
+    {
+        return type.getQualifiedName().equals("short") || type.getQualifiedName().equals("java.lang.Short");
+    }
+
+    /**
+     * Checks if type is 'float' or 'java.lang.Float'.
+     */
+    public static boolean isFloat(CtTypeReference<?> type)
+    {
+        return type.getQualifiedName().equals("float") || type.getQualifiedName().equals("java.lang.Float");
+    }
+
+    /**
+     * Checks if type is 'double' or 'java.lang.Double'.
+     */
+    public static boolean isDouble(CtTypeReference<?> type)
+    {
+        return type.getQualifiedName().equals("double") || type.getQualifiedName().equals("java.lang.Double");
+    }
+
+    /**
      * Checks if type is 'void' or 'java.lang.Void'.
      */
     public static boolean isVoid(CtTypeReference<?> type)
     {
         return type.getQualifiedName().equals("void") || type.getQualifiedName().equals("java.lang.Void");
+    }
+
+    /**
+     * Checks if the type is numeric (integral or the floating-point type).
+     */
+    public static boolean isNumeric(CtTypeReference<?> type)
+    {
+        return isChar(type)
+               || isByte(type)
+               || isShort(type)
+               || isInteger(type)
+               || isLong(type)
+               || isFloat(type)
+               || isDouble(type);
     }
 
     /**
