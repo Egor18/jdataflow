@@ -165,4 +165,22 @@ public class TestLogic
         if (x >= x) {} //@ALWAYS_TRUE
         if (x == x) {} //@ALWAYS_TRUE
     }
+
+    void testLogic17(Object p1, Object p2)
+    {
+        if (p1 == p2)
+        {
+            return;
+        }
+
+        if (p1 == null)
+        {
+            if (p2 != null) {} //@ALWAYS_TRUE
+        }
+
+        if (p2 == null)
+        {
+            if (p1 != null) {} //@ALWAYS_TRUE
+        }
+    }
 }
