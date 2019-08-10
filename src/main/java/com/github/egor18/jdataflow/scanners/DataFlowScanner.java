@@ -1169,6 +1169,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         checkAssignmentRight(right);
 
         visitAssignment(left, leftValue, leftType, rightValue, rightType);
+        currentResult = applyCasts(currentResult, assignment.getType(), assignment.getTypeCasts());
         assignment.putMetadata("value", currentResult);
         checkAssignmentResult(assignment);
     }
@@ -1204,12 +1205,11 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             leftData = memory.readArray((CtArrayTypeReference) arrayWrite.getTarget().getType(), (IntExpr) leftValue, arrayIndex);
         }
 
-        Expr resExpr = calcBinaryOperator(leftData, leftType, rightValue, rightType, assignment.getKind());
-        applyCasts(resExpr, assignment.getAssignment().getType(), Collections.singletonList(assignment.getAssigned().getType()));
-        rightValue = resExpr;
+        rightValue = calcBinaryOperator(leftData, leftType, rightValue, rightType, assignment.getKind());
         rightType = assignment.getAssigned().getType().unbox(); // Binary operator unboxes its operands
 
         visitAssignment(left, leftValue, leftType, rightValue, rightType);
+        currentResult = applyCasts(currentResult, assignment.getType(), assignment.getTypeCasts());
         assignment.putMetadata("value", currentResult);
     }
 
@@ -1275,6 +1275,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         scan(fieldRead.getTarget());
         IntExpr targetExpr = getTargetValue(context, variablesMap, memory, fieldRead.getTarget());
         currentResult = memory.read(fieldRead.getVariable(), targetExpr);
+        currentResult = applyCasts(currentResult, fieldRead.getType(), fieldRead.getTypeCasts());
         fieldRead.putMetadata("value", currentResult);
         checkFieldRead(fieldRead);
         visitDereference(targetExpr);

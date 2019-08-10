@@ -9,6 +9,9 @@ public class TestCast
     private native Integer unknownFunc4();
     private native Integer getInt();
     private native Object getObject();
+    public long fieldA;
+    public short fieldB;
+    public double fieldC;
 
     void testCast1(Object o, Object o2)
     {
@@ -311,5 +314,28 @@ public class TestCast
             x = new Integer(1234);
         }
         if ((Integer) x > 10) {} //@ALWAYS_TRUE
+    }
+
+    void testFieldReadCast()
+    {
+        if ((int) this.fieldA == 42) {}
+        if ((int) this.fieldB == 42) {}
+        if ((int) this.fieldC == 42) {}
+    }
+
+    void testAssignmentCast()
+    {
+        long p;
+        if (((int)(p = 3)) == 42) {} //@ALWAYS_FALSE
+        if (((int)(p = 42)) == 42) {} //@ALWAYS_TRUE
+    }
+
+    void testOperatorAssignmentCast()
+    {
+        long p = 0;
+        if ((int)(p += 3) == 42) {} //@ALWAYS_FALSE
+        if ((int)(p += 42) == 42) {} //@ALWAYS_FALSE
+        p = 0;
+        if ((int)(p += 42) == 42) {} //@ALWAYS_TRUE
     }
 }
