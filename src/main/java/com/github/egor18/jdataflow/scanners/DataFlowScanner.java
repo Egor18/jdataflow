@@ -1363,11 +1363,12 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                                     Expr rightValue, CtTypeReference<?> rightType,
                                     BinaryOperatorKind kind)
     {
-        final boolean compareReferences =
-            (kind == BinaryOperatorKind.EQ || kind == BinaryOperatorKind.NE)
+        final boolean workWithReferences =
+            (kind == BinaryOperatorKind.EQ || kind == BinaryOperatorKind.NE ||
+            (kind == BinaryOperatorKind.PLUS && (isString(leftType) || isString(rightType))))
             && !leftType.isPrimitive() && !rightType.isPrimitive();
 
-        if (!compareReferences)
+        if (!workWithReferences)
         {
             // Handle unknown types
             if (!isCalculable(leftType) || leftValue == null)
@@ -1380,10 +1381,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             {
                 leftValue = memory.read(leftType.unbox(), (IntExpr) leftValue);
             }
-        }
 
-        if (!compareReferences)
-        {
             // Handle unknown types
             if (!isCalculable(rightType) || rightValue == null)
             {
@@ -1395,10 +1393,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             {
                 rightValue = memory.read(rightType.unbox(), (IntExpr) rightValue);
             }
-        }
 
-        if (!compareReferences)
-        {
             // Binary Numeric Promotion
             if (leftValue instanceof BitVecExpr && rightValue instanceof BitVecExpr)
             {
@@ -1460,7 +1455,16 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             case USR:
                 return context.mkBVLSHR((BitVecExpr) leftValue, (BitVecExpr) rightValue);
             case PLUS:
-                return context.mkBVAdd((BitVecExpr) leftValue, (BitVecExpr) rightValue);
+                if (leftValue instanceof BitVecExpr && rightValue instanceof BitVecExpr)
+                {
+                    return context.mkBVAdd((BitVecExpr) leftValue, (BitVecExpr) rightValue);
+                }
+                else
+                {
+                    IntExpr result = (IntExpr) context.mkFreshConst("", context.getIntSort());
+                    solver.add(context.mkDistinct(result, context.mkInt(Memory.nullPointer())));
+                    return result;
+                }
             case MINUS:
                 return context.mkBVSub((BitVecExpr) leftValue, (BitVecExpr) rightValue);
             case MUL:
@@ -1479,7 +1483,34 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         CtTypeReference<?> leftType = getActualType(operator.getLeftHandOperand());
         CtTypeReference<?> rightType = getActualType(operator.getRightHandOperand());
+        CtTypeReference<?> operatorType = getActualType(operator);
         BinaryOperatorKind kind = operator.getKind();
+
+        // TODO: Remove this temporary workaround when spoon bug is fixed: https://github.com/INRIA/spoon/pull/3075
+        if (kind == BinaryOperatorKind.PLUS
+            && ((leftType != null && isString(leftType))
+                || (rightType != null && isString(rightType)
+                || (operatorType != null && isString(operatorType)))))
+        {
+            CtTypeReference stringTypeReference = factory.Type().STRING;
+
+            if (operator.getType() == null)
+            {
+                operator.setType(stringTypeReference);
+            }
+
+            if (leftType == null)
+            {
+                operator.getLeftHandOperand().setType(stringTypeReference);
+                leftType = stringTypeReference;
+            }
+
+            if (rightType == null)
+            {
+                operator.getRightHandOperand().setType(stringTypeReference);
+                rightType = stringTypeReference;
+            }
+        }
 
         scan(operator.getLeftHandOperand());
         Expr leftValue = currentResult;
