@@ -14,6 +14,10 @@ public class TestFields
     public static int staticInteger;
     public static C1 staticObject;
     public boolean booleanField = false;
+    private static final byte STATIC_BYTE_CONSTANT = 40;
+    private final byte BYTE_CONSTANT = 41;
+    private final byte INTEGER_CONSTANT = 42;
+
 
     void testFields1()
     {
@@ -317,5 +321,12 @@ public class TestFields
         C1 a = staticObject;
         a.x = 1234;
         if (staticObject.x == 1234) {} //@ALWAYS_TRUE
+    }
+
+    void testConstantFields()
+    {
+        if (STATIC_BYTE_CONSTANT == 40) {} //@ALWAYS_TRUE
+        if (BYTE_CONSTANT == 41) {} //@ALWAYS_TRUE
+        if (INTEGER_CONSTANT == 42) {} //@ALWAYS_TRUE
     }
 }

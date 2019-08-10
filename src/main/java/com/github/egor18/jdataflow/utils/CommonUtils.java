@@ -7,6 +7,7 @@ import com.microsoft.z3.IntExpr;
 import spoon.reflect.code.*;
 import spoon.reflect.reference.CtArrayTypeReference;
 import spoon.reflect.reference.CtReference;
+import spoon.reflect.reference.CtTypeReference;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -65,11 +66,12 @@ public final class CommonUtils
             }
             else if (t instanceof CtTypeAccess)
             {
-                targetValue = (IntExpr) variablesMap.get(getActualType(t));
+                CtTypeReference accessedType = ((CtTypeAccess) t).getAccessedType();
+                targetValue = (IntExpr) variablesMap.get(accessedType);
                 if (targetValue == null)
                 {
                     targetValue = (IntExpr) context.mkFreshConst("", context.getIntSort());
-                    variablesMap.put(getActualType(t), targetValue);
+                    variablesMap.put(accessedType, targetValue);
                 }
             }
             else

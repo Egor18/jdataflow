@@ -885,9 +885,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 SourcePosition modificationPosition = indirectModification.getPosition();
                 SourcePosition invocationPosition = invocation.getPosition();
                 if (modificationPosition == null || invocationPosition == null
-                        || modificationPosition instanceof NoSourcePosition || invocationPosition instanceof NoSourcePosition
-                        || !modificationPosition.isValidPosition() || !invocationPosition.isValidPosition()
-                        || modificationPosition.getSourceStart() <= invocation.getPosition().getSourceEnd())
+                    || modificationPosition instanceof NoSourcePosition || invocationPosition instanceof NoSourcePosition
+                    || !modificationPosition.isValidPosition() || !invocationPosition.isValidPosition()
+                    || modificationPosition.getSourceStart() <= invocation.getPosition().getSourceEnd())
                 {
                     resetScanner.scan(indirectModification);
                 }
@@ -962,7 +962,25 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 {
                     scan(defaultExpression);
                     Expr defaultExpr = currentResult;
-                    memory.write(field.getReference(), context.mkInt(Memory.thisPointer()), defaultExpr);
+                    defaultExpr = applyCasts(defaultExpr, getActualType(defaultExpression), Collections.singletonList(field.getType()));
+
+                    Expr index;
+                    if (field.isStatic())
+                    {
+                        CtTypeReference<?> declaringType = field.getDeclaringType().getReference();
+                        index = variablesMap.get(declaringType);
+                        if (index == null)
+                        {
+                            index = context.mkFreshConst("", context.getIntSort());
+                            variablesMap.put(declaringType, index);
+                        }
+                    }
+                    else
+                    {
+                        index = context.mkInt(Memory.thisPointer());
+                    }
+
+                    memory.write(field.getReference(), (IntExpr) index, defaultExpr);
                 }
             }
         }
