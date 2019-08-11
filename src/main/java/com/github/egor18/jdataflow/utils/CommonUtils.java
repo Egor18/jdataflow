@@ -43,10 +43,18 @@ public final class CommonUtils
         {
             if (t instanceof CtFieldRead)
             {
+                if (targetValue == null)
+                {
+                    return targetValue;
+                }
                 targetValue = (IntExpr) memory.read(((CtFieldRead) t).getVariable(), targetValue);
             }
             else if (t instanceof CtArrayRead)
             {
+                if (targetValue == null)
+                {
+                    return targetValue;
+                }
                 CtArrayRead arrayRead = (CtArrayRead) t;
                 CtExpression index = arrayRead.getIndexExpression();
                 Expr arrayIndex = (Expr) index.getMetadata("value");

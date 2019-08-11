@@ -141,4 +141,26 @@ public class TestLambda
         consumer.accept(42);
         if (z == 0) {}
     }
+
+    class TestLambdaParameterReset
+    {
+        class Position
+        {
+            public native int getLine();
+        }
+
+        class Warning
+        {
+            public Position[] positions;
+            public Position position;
+            public Position getPosition() { return position; }
+        }
+
+        void testLambdaParameterReset(List<Warning> warnings)
+        {
+            warnings.stream().noneMatch(w -> w.position.getLine() == 42);
+            warnings.stream().noneMatch(w -> w.getPosition().getLine() == 42);
+            warnings.stream().noneMatch(w -> w.positions[0].getLine() == 42);
+        }
+    }
 }
