@@ -641,43 +641,46 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             selectorValue = memory.read(getActualType(selector).unbox(), (IntExpr) selectorValue);
         }
 
-        BoolExpr commonConditionExpr = null;
         List<CtCase<? super S>> cases = switchStatement.getCases();
         for (CtCase<? super S> aCase : cases)
         {
             CtExpression<?> caseExpression = aCase.getCaseExpression();
-            BoolExpr branchExpr;
             if (caseExpression == null)
             {
                 // Default label
-                branchExpr = (commonConditionExpr == null) ? context.mkTrue() : context.mkNot(commonConditionExpr);
+                continue;
             }
-            else
+
+            // Case label
+            CtTypeReference<?> caseType = getActualType(caseExpression);
+            scan(caseExpression);
+            Expr caseValue = currentResult;
+
+            // Binary Numeric Promotion
+            if (selectorValue instanceof BitVecExpr && caseValue instanceof BitVecExpr)
             {
-                // Case label
-                CtTypeReference<?> caseType = getActualType(caseExpression);
-                scan(caseExpression);
-                Expr caseValue = currentResult;
-
-                // Binary Numeric Promotion
-                if (selectorValue instanceof BitVecExpr && caseValue instanceof BitVecExpr)
-                {
-                    Expr[] result = promoteNumericValues(context, selectorValue, selectorType, caseValue, caseType);
-                    selectorValue = result[0];
-                    caseValue = result[1];
-                }
-
-                BoolExpr conditionExpr = context.mkEq(selectorValue, caseValue);
-
-                // Handle cases as conditions
-                caseExpression.putMetadata("value", conditionExpr);
-                checkCondition(caseExpression, false);
-
-                // Connect cases with OR
-                commonConditionExpr = (commonConditionExpr == null) ? conditionExpr : context.mkOr(commonConditionExpr, conditionExpr);
-
-                branchExpr = context.mkAnd(commonConditionExpr, context.mkNot(getBreakExpr()));
+                Expr[] result = promoteNumericValues(context, selectorValue, selectorType, caseValue, caseType);
+                selectorValue = result[0];
+                caseValue = result[1];
             }
+
+            BoolExpr conditionExpr = context.mkEq(selectorValue, caseValue);
+
+            // Handle cases as conditions
+            caseExpression.putMetadata("value", conditionExpr);
+            checkCondition(caseExpression, false);
+        }
+
+
+        BoolExpr commonConditionExpr = null;
+        for (CtCase<? super S> aCase : cases)
+        {
+            CtExpression<?> caseExpression = aCase.getCaseExpression();
+            BoolExpr conditionExpr = caseExpression == null ? context.mkTrue() : (BoolExpr) caseExpression.getMetadata("value");
+
+            // Connect cases with OR
+            commonConditionExpr = (commonConditionExpr == null) ? conditionExpr : context.mkOr(commonConditionExpr, conditionExpr);
+            BoolExpr branchExpr = context.mkAnd(commonConditionExpr, context.mkNot(getBreakExpr()));
 
             BranchData thenBranchData = visitBranch(branchExpr, aCase);
             BranchData elseBranchData = new BranchData(variablesMap, memory);

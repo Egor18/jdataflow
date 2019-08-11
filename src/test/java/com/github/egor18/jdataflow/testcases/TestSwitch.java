@@ -272,6 +272,54 @@ public class TestSwitch
         }
     }
 
+    void testSwitch13()
+    {
+        int x = 0;
+        int a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_TRUE
+                a += 1;
+            case 1: //@ALWAYS_FALSE
+                a += 1;
+            case 3: //@ALWAYS_FALSE
+                a += 2;
+            default:
+                break;
+        }
+        if (a == 4) {} //@ALWAYS_TRUE
+
+        x = 1;
+        a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_FALSE
+                a += 1;
+            case 1: //@ALWAYS_TRUE
+                a += 1;
+            case 3: //@ALWAYS_FALSE
+                a += 2;
+            default:
+                break;
+        }
+        if (a == 3) {} //@ALWAYS_TRUE
+
+        x = 3;
+        a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_FALSE
+                a += 1;
+            case 1: //@ALWAYS_FALSE
+                a += 1;
+            case 3: //@ALWAYS_TRUE
+                a += 2;
+            default:
+                break;
+        }
+        if (a == 2) {} //@ALWAYS_TRUE
+    }
+
     void testCase1()
     {
         int a = 5;
@@ -312,7 +360,23 @@ public class TestSwitch
                     break;
                 case 3:
                     break;
-                case 5: //@ALWAYS_TRUE
+                case 5:
+                    break;
+            }
+        }
+    }
+
+    void testCase4(int a)
+    {
+        if (a != 3 && a != 5)
+        {
+            switch (a)
+            {
+                case 1:
+                    break;
+                case 3: //@ALWAYS_FALSE
+                    break;
+                case 5: //@ALWAYS_FALSE
                     break;
             }
         }
@@ -386,5 +450,118 @@ public class TestSwitch
         if (z == 142) {} //TODO: enums
         if (z == 5) {} //TODO: enums
         if (z == 6) {} //@ALWAYS_FALSE
+    }
+
+    void testDefaultOrder1(int a)
+    {
+        switch (a)
+        {
+            case 1:
+                System.out.println("one");
+                break;
+            default:
+                System.out.println("default");
+                break;
+            case 2: //ok
+                System.out.println("two");
+                break;
+            case 3: //ok
+                System.out.println("three");
+                break;
+        }
+    }
+
+    void testDefaultOrder2()
+    {
+        int x = 0;
+        int a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_TRUE
+                a += 1;
+            default:
+                a += 1000;
+            case 1: //@ALWAYS_FALSE
+                a += 2;
+            case 2: //@ALWAYS_FALSE
+                a += 3;
+        }
+        if (a == 1006) {} //@ALWAYS_TRUE
+        if (a == 6) {} //@ALWAYS_FALSE
+    }
+
+    void testDefaultOrder3()
+    {
+        int x = 1000;
+        int a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_FALSE
+                a += 1;
+            default:
+                a += 1000;
+            case 1: //@ALWAYS_FALSE
+                a += 2;
+            case 2: //@ALWAYS_FALSE
+                a += 3;
+        }
+        if (a == 1005) {} //@ALWAYS_TRUE
+    }
+
+    void testDefaultOrder4()
+    {
+        int x = 1000;
+        int a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_FALSE
+                a += 1;
+            default:
+                a += 1000;
+                break;
+            case 1: //@ALWAYS_FALSE
+                a += 2;
+            case 2: //@ALWAYS_FALSE
+                a += 3;
+        }
+        if (a == 1000) {} //@ALWAYS_TRUE
+    }
+
+    void testDefaultOrder5()
+    {
+        int x = 0;
+        int a = 0;
+        switch (x)
+        {
+            case 0: //@ALWAYS_TRUE
+                a += 1;
+            default:
+                a += 1000;
+                break;
+            case 1: //@ALWAYS_FALSE
+                a += 2;
+            case 2: //@ALWAYS_FALSE
+                a += 3;
+        }
+        if (a == 1001) {} //@ALWAYS_TRUE
+    }
+
+    void testDefaultOrder6()
+    {
+        int x = 0;
+        int a = 0;
+        switch (x)
+        {
+            default:
+                a = 1;
+            case 1: //@ALWAYS_FALSE
+                a += 2;
+            case 2: //@ALWAYS_FALSE
+                a += 3;
+                break;
+            case 3: //@ALWAYS_FALSE
+                a += 5;
+        }
+        if (a == 6) {} //@ALWAYS_TRUE
     }
 }
