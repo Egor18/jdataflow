@@ -564,4 +564,34 @@ public class TestSwitch
         }
         if (a == 6) {} //@ALWAYS_TRUE
     }
+
+    void testSwitchCoverAll1(int x)
+    {
+        int a = x % 3;
+        switch (a)
+        {
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+        }
+    }
+
+    void testSwitchCoverAll2(int x)
+    {
+        int a = x % 3;
+        switch (a)
+        {
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3: //@ALWAYS_FALSE
+                break;
+        }
+    }
 }
