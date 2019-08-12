@@ -868,7 +868,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         // Reset this
         IntNum thisExpr = context.mkInt(Memory.thisPointer());
-        CtTypeReference thisType = invocation.getParent(CtClass.class).getReference();
+        CtTypeReference thisType = invocation.getParent(CtType.class).getReference();
         memory.resetObject(thisType, thisExpr);
 
         // Reset super
