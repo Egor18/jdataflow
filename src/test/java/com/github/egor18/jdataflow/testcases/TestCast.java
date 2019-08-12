@@ -9,6 +9,8 @@ public class TestCast
     private native Integer unknownFunc4();
     private native Integer getInt();
     private native Object getObject();
+    private native boolean isTrue();
+    private native int getNum();
     public long fieldA;
     public short fieldB;
     public double fieldC;
@@ -176,6 +178,14 @@ public class TestCast
             unknownFunc1((C1) o);
             if (((C1) o).x == 42) {} //ok
         }
+    }
+
+    void testCast18()
+    {
+        Object x = (Object) isTrue();
+        Object y = (Object) getNum();
+        if (x == null) {} //@ALWAYS_FALSE
+        if (y == null) {} //@ALWAYS_FALSE
     }
 
     void testInvocationCast1()

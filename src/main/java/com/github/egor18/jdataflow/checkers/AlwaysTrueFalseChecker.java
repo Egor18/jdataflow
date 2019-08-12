@@ -31,12 +31,16 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
 
     private void check(CtExpression<?> expression, boolean isLoopCondition)
     {
+        CtTypeReference<?> expressionType = getActualType(expression);
+        if (!isCalculable(expressionType))
+        {
+            return;
+        }
+
         Expr conditionExpr = (Expr) expression.getMetadata("value");
 
-        CtTypeReference<?> expressionType = getActualType(expression);
-
         // Unboxing conversion
-        if (!expressionType.isPrimitive() && isCalculable(expressionType))
+        if (!expressionType.isPrimitive())
         {
             conditionExpr = getMemory().read(expressionType.unbox(), (IntExpr) conditionExpr);
         }
