@@ -60,6 +60,7 @@ public class Main
         {
             launcher.getEnvironment().setSourceClasspath(classpath);
         }
+        System.out.println("Building model");
         CtModel ctModel = launcher.buildModel();
 
         CheckersScanner scanner = new CheckersScanner(launcher.getFactory());
