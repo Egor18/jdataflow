@@ -348,4 +348,10 @@ public class TestCast
         p = 0;
         if ((int)(p += 42) == 42) {} //@ALWAYS_TRUE
     }
+
+    void testArrayCast1(Object obj, Integer index)
+    {
+        Object tmp = ((Object[]) obj)[index];
+        if (tmp == null) {} //ok
+    }
 }

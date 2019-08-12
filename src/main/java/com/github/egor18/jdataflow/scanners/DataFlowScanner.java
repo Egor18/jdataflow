@@ -1312,7 +1312,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
 
         indexExpr = promoteNumericValue(context, indexExpr, indexType);
-        CtArrayTypeReference<?> arrayType = (CtArrayTypeReference) arrayRead.getTarget().getType();
+        CtArrayTypeReference<?> arrayType = (CtArrayTypeReference) getActualType(arrayRead.getTarget());
         currentResult = memory.readArray(arrayType, targetExpr, indexExpr);
         arrayRead.putMetadata("value", currentResult);
         checkArrayRead(arrayRead);
