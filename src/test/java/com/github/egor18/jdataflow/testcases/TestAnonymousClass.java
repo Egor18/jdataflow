@@ -132,7 +132,7 @@ public class TestAnonymousClass
     int a;
     final int b = 142;
     class X { int x; }
-    void f()
+    void testAnonymousClass6()
     {
         a = 0;
         int j = 42;

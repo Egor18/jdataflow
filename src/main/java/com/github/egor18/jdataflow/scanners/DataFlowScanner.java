@@ -1275,8 +1275,21 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtFieldRead(CtFieldRead<T> fieldRead)
     {
-        scan(fieldRead.getTarget());
-        IntExpr targetExpr = getTargetValue(context, variablesMap, memory, fieldRead.getTarget());
+        CtExpression<?> target = fieldRead.getTarget();
+
+        // Construct type access for static field declared in anonymous type (null in spoon by default)
+        IntExpr targetExpr;
+        if (target == null
+            && fieldRead.getVariable().isStatic()
+            && fieldRead.getVariable().getDeclaringType().isAnonymous())
+        {
+            target = factory.createTypeAccess(fieldRead.getVariable().getDeclaringType());
+        }
+
+        scan(target);
+
+        targetExpr = getTargetValue(context, variablesMap, memory, target);
+
         currentResult = memory.read(fieldRead.getVariable(), targetExpr);
         currentResult = applyCasts(currentResult, fieldRead.getType(), fieldRead.getTypeCasts());
         fieldRead.putMetadata("value", currentResult);

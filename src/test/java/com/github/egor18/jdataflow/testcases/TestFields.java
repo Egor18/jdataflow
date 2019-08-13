@@ -329,4 +329,16 @@ public class TestFields
         if (BYTE_CONSTANT == 41) {} //@ALWAYS_TRUE
         if (INTEGER_CONSTANT == 42) {} //@ALWAYS_TRUE
     }
+
+    void testStaticFieldInAnonymousType()
+    {
+        Object o = new Object()
+        {
+            private static final String CONST = "hello";
+            void f(String name)
+            {
+                if (CONST == null) {} //@ALWAYS_FALSE
+            }
+        };
+    }
 }
