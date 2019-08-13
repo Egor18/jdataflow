@@ -2,9 +2,14 @@ package com.github.egor18.jdataflow;
 
 import com.github.egor18.jdataflow.scanners.CheckersScanner;
 import org.apache.commons.cli.*;
+import org.apache.commons.io.IOUtils;
 import spoon.Launcher;
 import spoon.reflect.CtModel;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public class Main
@@ -13,22 +18,36 @@ public class Main
     {
         Options options = new Options();
 
-        Option sourcesOption = new Option("sources", "sources to be analyzed");
+        Option sourcesOption = new Option("s", "sources to be analyzed");
+        sourcesOption.setLongOpt("sources");
         sourcesOption.setRequired(true);
-        sourcesOption.setArgName("arg...");
+        sourcesOption.setArgName("args...");
         sourcesOption.setArgs(Option.UNLIMITED_VALUES);
         options.addOption(sourcesOption);
 
-        Option classpathOption = new Option("classpath", "sources classpath");
+        Option classpathOption = new Option("cp", "sources classpath");
+        classpathOption.setLongOpt("classpath");
         classpathOption.setRequired(false);
-        classpathOption.setArgName("arg...");
-        classpathOption.setArgs(Option.UNLIMITED_VALUES);
+        classpathOption.setArgName("arg");
+        classpathOption.setArgs(1);
         options.addOption(classpathOption);
+
+        Option classpathFileOption = new Option("cf", "text file with sources classpath");
+        classpathFileOption.setLongOpt("classpath-file");
+        classpathFileOption.setRequired(false);
+        classpathFileOption.setArgName("arg");
+        classpathFileOption.setArgs(1);
+        options.addOption(classpathFileOption);
 
         return options;
     }
 
-    public static void main(String[] args)
+    private static String[] parseClasspath(String classpathString)
+    {
+        return classpathString.trim().split(File.pathSeparator);
+    }
+
+    public static void main(String[] args) throws IOException
     {
         Options options = createCommandLineOptions();
 
@@ -48,8 +67,9 @@ public class Main
             return;
         }
 
-        String[] sources = cmd.getOptionValues("sources");
-        String[] classpath = cmd.getOptionValues("classpath");
+        String[] sources = cmd.getOptionValues("s");
+        String[] classpath = cmd.getOptionValues("cp");
+        String[] classpathFile = cmd.getOptionValues("cf");
 
         Launcher launcher = new Launcher();
         //launcher.getEnvironment().setNoClasspath(false);
@@ -58,8 +78,15 @@ public class Main
         Arrays.stream(sources).forEach(launcher::addInputResource);
         if (classpath != null)
         {
-            launcher.getEnvironment().setSourceClasspath(classpath);
+            launcher.getEnvironment().setSourceClasspath(parseClasspath(classpath[0]));
         }
+        else if (classpathFile != null)
+        {
+            FileInputStream fisTargetFile = new FileInputStream(new File(classpathFile[0]));
+            String content = IOUtils.toString(fisTargetFile, Charset.defaultCharset());
+            launcher.getEnvironment().setSourceClasspath(parseClasspath(content));
+        }
+
         System.out.println("Building model");
         CtModel ctModel = launcher.buildModel();
 

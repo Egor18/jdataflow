@@ -54,7 +54,7 @@ Note: Visual C++ 2015 Redistributable may be required.
 Note that you may still need to set up environment variables or java.lang.path in your IDE.
 
 Now you can go to the build directory and run the resulting jar:    
-`java -jar jdataflow.jar -sources <arg...> [-classpath <arg...>]`
+`java -jar jdataflow.jar --sources <args...> [--classpath <arg>] [--classpath-file <arg>]`
 
 ## Under the hood
 ### AST
