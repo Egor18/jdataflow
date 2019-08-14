@@ -39,6 +39,10 @@ public class Main
         classpathFileOption.setArgs(1);
         options.addOption(classpathFileOption);
 
+        Option noFailsafeOption = new Option(null, "no-failsafe", false, "terminate analysis immediately on any error");
+        noFailsafeOption.setRequired(false);
+        options.addOption(noFailsafeOption);
+
         return options;
     }
 
@@ -70,6 +74,7 @@ public class Main
         String[] sources = cmd.getOptionValues("s");
         String[] classpath = cmd.getOptionValues("cp");
         String[] classpathFile = cmd.getOptionValues("cf");
+        boolean noFailsafe = cmd.hasOption("no-failsafe");
 
         Launcher launcher = new Launcher();
         //launcher.getEnvironment().setNoClasspath(false);
@@ -90,7 +95,7 @@ public class Main
         System.out.println("Building model");
         CtModel ctModel = launcher.buildModel();
 
-        CheckersScanner scanner = new CheckersScanner(launcher.getFactory());
+        CheckersScanner scanner = new CheckersScanner(launcher.getFactory(), !noFailsafe);
         ctModel.getAllTypes().forEach(scanner::scan);
         scanner.getWarnings().forEach(w -> System.out.println("WARNING: " + w));
     }

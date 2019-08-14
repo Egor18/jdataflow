@@ -56,7 +56,7 @@ public class TestRunner
 
         List<String> lines = Files.readAllLines(file.toPath(), Charset.defaultCharset());
 
-        CheckersScanner scanner = new CheckersScanner(launcher.getFactory());
+        CheckersScanner scanner = new CheckersScanner(launcher.getFactory(), false);
         model.getAllTypes().forEach(scanner::scan);
         List<Warning> warnings = scanner.getWarnings();
 

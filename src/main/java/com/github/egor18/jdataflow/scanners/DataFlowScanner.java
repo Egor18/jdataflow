@@ -51,6 +51,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Memory model
     private Memory memory;
 
+    // Whether to terminate analysis immediately on any error or not
+    private boolean failsafe;
+
     // Abrupt termination flags references
     private CtReference returnFlagReference;
     private CtReference breakFlagReference;
@@ -63,12 +66,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Current calculated result
     private Expr currentResult;
 
-    public DataFlowScanner(Factory factory)
+    public DataFlowScanner(Factory factory, boolean failsafe)
     {
         this.factory = factory;
         this.context = new Context();
         this.solver = context.mkSolver();
         this.memory = new Memory(context);
+        this.failsafe = failsafe;
     }
 
     private BoolExpr getReturnExpr()
@@ -951,53 +955,73 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     }
 
     @Override
-    public <T> void visitCtClass(CtClass<T> ctClass)
+    public <T> void visitCtField(CtField<T> field)
     {
-        // Before visiting a class, we should visit all of its fields
-        System.out.println("Analyzing class: " + ctClass.getQualifiedName());
-        List<CtField<?>> fields = ctClass.getFields();
-        for (CtField<?> field : fields)
+        if (field.isFinal())
         {
-            if (field.isFinal())
+            CtExpression<?> defaultExpression = field.getDefaultExpression();
+            if (defaultExpression != null)
             {
-                CtExpression<?> defaultExpression = field.getDefaultExpression();
-                if (defaultExpression != null)
+                scan(defaultExpression);
+                Expr defaultExpr = currentResult;
+                defaultExpr = applyCasts(defaultExpr, getActualType(defaultExpression), Collections.singletonList(field.getType()));
+
+                Expr index;
+                if (field.isStatic())
                 {
-                    scan(defaultExpression);
-                    Expr defaultExpr = currentResult;
-                    defaultExpr = applyCasts(defaultExpr, getActualType(defaultExpression), Collections.singletonList(field.getType()));
-
-                    Expr index;
-                    if (field.isStatic())
+                    CtTypeReference<?> declaringType = field.getDeclaringType().getReference();
+                    index = variablesMap.get(declaringType);
+                    if (index == null)
                     {
-                        CtTypeReference<?> declaringType = field.getDeclaringType().getReference();
-                        index = variablesMap.get(declaringType);
-                        if (index == null)
-                        {
-                            index = context.mkFreshConst("", context.getIntSort());
-                            variablesMap.put(declaringType, index);
-                        }
+                        index = context.mkFreshConst("", context.getIntSort());
+                        variablesMap.put(declaringType, index);
                     }
-                    else
-                    {
-                        index = context.mkInt(Memory.thisPointer());
-                    }
-
-                    memory.write(field.getReference(), (IntExpr) index, defaultExpr);
                 }
+                else
+                {
+                    index = context.mkInt(Memory.thisPointer());
+                }
+
+                memory.write(field.getReference(), (IntExpr) index, defaultExpr);
             }
         }
+    }
 
+    @Override
+    public <T> void visitCtClass(CtClass<T> ctClass)
+    {
+        System.out.println("Analyzing class: " + ctClass.getQualifiedName());
+        int startNumScopes = solver.getNumScopes();
         solver.push();
         Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
         Memory oldMemory = new Memory(memory);
         memory.resetMutable();
 
-        super.visitCtClass(ctClass);
-
-        variablesMap = oldValues;
-        memory = oldMemory;
-        solver.pop();
+        try
+        {
+            // Before visiting a class, we should visit all of its fields
+            List<CtTypeMember> typeMembers = ctClass.getTypeMembers();
+            typeMembers.forEach(m -> { if (m instanceof CtField) { scan(m); }});
+            typeMembers.forEach(m -> { if (!(m instanceof CtField)) { scan(m); }});
+        }
+        catch (Exception e)
+        {
+            System.out.println("Failed to analyze class " + ctClass.getQualifiedName() + ":");
+            if (failsafe)
+            {
+                e.printStackTrace();
+            }
+            else
+            {
+                throw e;
+            }
+        }
+        finally
+        {
+            variablesMap = oldValues;
+            memory = oldMemory;
+            solver.pop(solver.getNumScopes() - startNumScopes);
+        }
     }
 
     @Override
@@ -1008,6 +1032,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     private void visitMethod(CtElement body, List<CtParameter<?>> parameters)
     {
+        int startNumScopes = solver.getNumScopes();
         solver.push();
         Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
         Memory oldMemory = new Memory(memory);
@@ -1037,16 +1062,33 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             variablesMap.put(parameter.getReference(), makeFreshConstFromType(context, parameter.getType()));
         }
 
-        scan(body);
-
-        variablesMap = oldValues;
-        memory = oldMemory;
-        currentConditions = oldConditions;
-        returnFlagReference = oldReturnFlagReference;
-        breakFlagReference = oldBreakFlagReference;
-        continueFlagReference = oldContinueFlagReference;
-        throwFlagReference = oldThrowFlagReference;
-        solver.pop();
+        try
+        {
+            scan(body);
+        }
+        catch (Exception e)
+        {
+            System.out.println("Failed to analyze method " + body.getParent(CtMethod.class).getSimpleName() + ":");
+            if (failsafe)
+            {
+                e.printStackTrace();
+            }
+            else
+            {
+                throw e;
+            }
+        }
+        finally
+        {
+            variablesMap = oldValues;
+            memory = oldMemory;
+            currentConditions = oldConditions;
+            returnFlagReference = oldReturnFlagReference;
+            breakFlagReference = oldBreakFlagReference;
+            continueFlagReference = oldContinueFlagReference;
+            throwFlagReference = oldThrowFlagReference;
+            solver.pop(solver.getNumScopes() - startNumScopes);
+        }
     }
 
     @Override

@@ -28,9 +28,9 @@ public class CheckersScanner extends DataFlowScanner
         warnings.add(warning);
     }
 
-    public CheckersScanner(Factory factory)
+    public CheckersScanner(Factory factory, boolean failsafe)
     {
-        super(factory);
+        super(factory, failsafe);
         checkers.add(new AlwaysTrueFalseChecker(this));
         checkers.add(new NullDereferenceChecker(this));
     }
