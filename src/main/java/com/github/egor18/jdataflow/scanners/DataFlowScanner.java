@@ -66,6 +66,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Current calculated result
     private Expr currentResult;
 
+    // Whether the scanner is inside loop entry condition
+    private boolean isInsideLoopEntryCondition = false;
+
     public DataFlowScanner(Factory factory, boolean failsafe)
     {
         this.factory = factory;
@@ -108,6 +111,11 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     public Memory getMemory()
     {
         return memory;
+    }
+
+    public boolean isInsideLoopEntryCondition()
+    {
+        return isInsideLoopEntryCondition;
     }
 
     /**
@@ -364,7 +372,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public void visitCtIf(CtIf ifElement)
     {
-        BoolExpr conditionExpr = visitCondition(ifElement.getCondition(), false);
+        BoolExpr conditionExpr = visitCondition(ifElement.getCondition());
 
         final boolean hasElseBranch = ifElement.getElseStatement() != null;
 
@@ -386,12 +394,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             if (loopCondition != null)
             {
                 // Check if loop condition is always false
-                visitCondition(loopCondition, true);
+                isInsideLoopEntryCondition = true;
+                visitCondition(loopCondition);
+                isInsideLoopEntryCondition = false;
             }
             ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
+            resetScanner.scan(loopCondition);
             Arrays.stream(loopBody).forEach(resetScanner::scan);
-            iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition, true);
-
+            iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition);
             iterationBranchData = visitBranch(iterationConditionExpr, loopBody);
         }
         else
@@ -399,7 +409,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
             Arrays.stream(loopBody).forEach(resetScanner::scan);
             iterationBranchData = visitBranch(context.mkTrue(), loopBody);
-            iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition, true);
+            iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition);
         }
 
         // Save information about the break
@@ -452,13 +462,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         visitLoop(loopCondition, false, loopBody);
     }
 
-    private BoolExpr visitCondition(CtExpression<Boolean> condition, boolean isLoopCondition)
+    private BoolExpr visitCondition(CtExpression<Boolean> condition)
     {
         scan(condition);
         Expr conditionValue = currentResult;
         condition.putMetadata("value", conditionValue);
 
-        checkCondition(condition, isLoopCondition);
+        checkCondition(condition);
 
         // Unboxing conversion
         if (!getActualType(condition).isPrimitive())
@@ -530,7 +540,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtConditional(CtConditional<T> conditional)
     {
-        BoolExpr conditionExpr = visitCondition(conditional.getCondition(), false);
+        BoolExpr conditionExpr = visitCondition(conditional.getCondition());
 
         BranchData thenBranchData = visitBranch(conditionExpr, conditional.getThenExpression());
         Expr thenExpr = currentResult;
@@ -672,7 +682,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
             // Handle cases as conditions
             caseExpression.putMetadata("value", conditionExpr);
-            checkCondition(caseExpression, false);
+            checkCondition(caseExpression);
         }
 
 

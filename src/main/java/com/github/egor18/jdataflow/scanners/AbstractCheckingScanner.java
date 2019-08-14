@@ -10,7 +10,7 @@ import spoon.reflect.visitor.CtScanner;
 public abstract class AbstractCheckingScanner extends CtScanner implements Checker
 {
     @Override
-    public abstract void checkCondition(CtExpression<?> condition, boolean isLoopCondition);
+    public abstract void checkCondition(CtExpression<?> condition);
 
     @Override
     public abstract void checkBinaryOperatorLeft(BinaryOperatorKind kind, CtExpression<?> left);

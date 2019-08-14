@@ -8,9 +8,8 @@ import com.github.egor18.jdataflow.warning.WarningKind;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
-import spoon.reflect.code.BinaryOperatorKind;
-import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtLiteral;
+import spoon.reflect.code.*;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.reference.CtTypeReference;
 
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
@@ -29,10 +28,30 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
         super(scanner);
     }
 
-    private void check(CtExpression<?> expression, boolean isLoopCondition)
+    private boolean isLiteralLoopCondition(CtExpression<?> expression)
+    {
+        if (!(expression instanceof CtLiteral) || !((CtLiteral) expression).getValue().equals(true))
+        {
+            return false;
+        }
+
+        CtElement parent = expression.getParent();
+
+        return (parent instanceof CtWhile && ((CtWhile) parent).getLoopingExpression() == expression)
+                || (parent instanceof CtDo && ((CtDo) parent).getLoopingExpression() == expression)
+                || (parent instanceof CtFor && ((CtFor) parent).getExpression() == expression);
+    }
+
+    private void check(CtExpression<?> expression)
     {
         CtTypeReference<?> expressionType = getActualType(expression);
         if (!isCalculable(expressionType))
+        {
+            return;
+        }
+
+        // There is no need to warn about while (true) {...}
+        if (isLiteralLoopCondition(expression))
         {
             return;
         }
@@ -47,8 +66,12 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
 
         ConditionStatus conditionStatus = checkCond((BoolExpr) conditionExpr);
 
-        if (conditionStatus == ConditionStatus.ALWAYS_TRUE && !isLoopCondition)
+        if (conditionStatus == ConditionStatus.ALWAYS_TRUE)
         {
+            if (isInsideLoopEntryCondition())
+            {
+                return;
+            }
             addWarning(new Warning(expression, WarningKind.ALWAYS_TRUE));
         }
         else if (conditionStatus == ConditionStatus.ALWAYS_FALSE)
@@ -61,14 +84,14 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
     {
         if (expression != null && !(expression instanceof CtLiteral) && TypeUtils.isBoolean(expression.getType()))
         {
-            check(expression, false);
+            check(expression);
         }
     }
 
     @Override
-    public void checkCondition(CtExpression<?> condition, boolean isLoopCondition)
+    public void checkCondition(CtExpression<?> condition)
     {
-        check(condition, isLoopCondition);
+        check(condition);
     }
 
     @Override
@@ -76,7 +99,7 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
     {
         if (kind == BinaryOperatorKind.AND || kind == BinaryOperatorKind.OR)
         {
-            check(left, false);
+            check(left);
         }
     }
 
@@ -85,7 +108,7 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
     {
         if (kind == BinaryOperatorKind.AND || kind == BinaryOperatorKind.OR)
         {
-            check(right, false);
+            check(right);
         }
     }
 

@@ -43,6 +43,11 @@ public abstract class AbstractChecker implements Checker
         return scanner.getMemory();
     }
 
+    protected boolean isInsideLoopEntryCondition()
+    {
+        return scanner.isInsideLoopEntryCondition();
+    }
+
     protected ConditionStatus checkCond(BoolExpr conditionExpr)
     {
         return scanner.checkCond(conditionExpr);
@@ -54,7 +59,7 @@ public abstract class AbstractChecker implements Checker
     }
 
     @Override
-    public void checkCondition(CtExpression<?> condition, boolean isLoopCondition) {}
+    public void checkCondition(CtExpression<?> condition) {}
 
     @Override
     public void checkBinaryOperatorLeft(BinaryOperatorKind kind, CtExpression<?> left) {}

@@ -4,7 +4,7 @@ import spoon.reflect.code.*;
 
 public interface Checker
 {
-    void checkCondition(CtExpression<?> condition, boolean isLoopCondition);
+    void checkCondition(CtExpression<?> condition);
 
     void checkBinaryOperatorLeft(BinaryOperatorKind kind, CtExpression<?> left);
 

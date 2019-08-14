@@ -5,6 +5,11 @@ import java.util.List;
 
 public class TestLoops
 {
+    class Node
+    {
+        public native Node getNext();
+    }
+
     void testWhile1()
     {
         int a = 0;
@@ -274,7 +279,7 @@ public class TestLoops
     void testWhile18()
     {
         int a = 0;
-        while (a < 10) {}
+        while (a < 10) {} //@ALWAYS_TRUE
         if (a == 0) {} //@ALWAYS_FALSE
     }
 
@@ -371,7 +376,7 @@ public class TestLoops
     void testWhile24(boolean cond)
     {
         int x = 1;
-        while (x == 1)
+        while (x == 1) //@ALWAYS_TRUE
         {
             if (cond)
             {
@@ -421,7 +426,7 @@ public class TestLoops
     void testWhile27()
     {
         int a = 0;
-        while(true)
+        while (true)
         {
             if (a == 100)
             {
@@ -601,7 +606,7 @@ public class TestLoops
     void testWhile39()
     {
         boolean a = true;
-        while (a) {} //ok
+        while (a) {} //@ALWAYS_TRUE
 
         boolean b = false;
         while (b) {} //@ALWAYS_FALSE
@@ -627,6 +632,17 @@ public class TestLoops
             if (i == 3) {} //@ALWAYS_FALSE
         }
         if (i == 3) {} //ok
+    }
+
+    void testWhile42(Node p, boolean cond)
+    {
+        if (p != null)
+        {
+            while (p != null && cond) // ok
+            {
+                p = p.getNext();
+            }
+        }
     }
 
     void testDo1(int i)
@@ -705,6 +721,15 @@ public class TestLoops
             i += 100;
         }
         while (i > 10);
+    }
+
+    void testDo8()
+    {
+        int i = 0;
+        do
+        {
+        }
+        while (i < 10); //@ALWAYS_TRUE
     }
 
     void testFor1()
@@ -831,5 +856,42 @@ public class TestLoops
             if (o == other) {}
             if (o == null) {}
         }
+    }
+
+    void testLoopLiteral1(Node p)
+    {
+        while (true) //ok
+        {
+            if (p == null)
+            {
+                break;
+            }
+            p = p.getNext();
+        }
+    }
+
+    void testLoopLiteral2(Node p)
+    {
+        for (;true;) //ok
+        {
+            if (p == null)
+            {
+                break;
+            }
+            p = p.getNext();
+        }
+    }
+
+    void testLoopLiteral3(Node p)
+    {
+        do
+        {
+            if (p == null)
+            {
+                break;
+            }
+            p = p.getNext();
+        }
+        while (true); //ok
     }
 }

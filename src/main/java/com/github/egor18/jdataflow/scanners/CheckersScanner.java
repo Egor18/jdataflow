@@ -36,9 +36,9 @@ public class CheckersScanner extends DataFlowScanner
     }
 
     @Override
-    public void checkCondition(CtExpression<?> condition, boolean isLoopCondition)
+    public void checkCondition(CtExpression<?> condition)
     {
-        checkers.forEach(c -> c.checkCondition(condition, isLoopCondition));
+        checkers.forEach(c -> c.checkCondition(condition));
     }
 
     @Override
