@@ -645,6 +645,35 @@ public class TestLoops
         }
     }
 
+    public native void unknownFunc();
+
+    void testWhile43(boolean c1, boolean c2, boolean c3)
+    {
+        boolean interrupted = false;
+        if (c1)
+        {
+            while (true)
+            {
+                if (c2)
+                {
+                    unknownFunc();
+                    return;
+                }
+
+                if (c3)
+                {
+                    interrupted = true;
+                }
+            }
+        }
+
+        {
+            if (true) {} //@ALWAYS_TRUE
+            if (false) {} //@ALWAYS_FALSE
+            if (interrupted) {} //@ALWAYS_FALSE
+        }
+    }
+
     void testDo1(int i)
     {
         do

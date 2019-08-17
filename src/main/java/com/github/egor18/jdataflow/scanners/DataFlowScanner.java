@@ -412,17 +412,21 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition);
         }
 
-        // Save information about the break
+        // Save information about break, return, throw
         variablesMap.put(breakFlagReference, iterationBranchData.getVariablesMap().get(breakFlagReference));
+        variablesMap.put(returnFlagReference, iterationBranchData.getVariablesMap().get(returnFlagReference));
+        variablesMap.put(throwFlagReference, iterationBranchData.getVariablesMap().get(throwFlagReference));
 
         BoolExpr currentBreakExpr = getBreakExpr();
+        BoolExpr currentReturnExpr = getReturnExpr();
+        BoolExpr currentThrowExpr = getThrowExpr();
 
         // Reset flow flags after exiting the loop
         variablesMap.put(breakFlagReference, oldBreakExpr);
         variablesMap.put(continueFlagReference, oldContinueExpr);
 
         // Invert loop condition
-        solver.add(context.mkOr(context.mkNot(iterationConditionExpr), currentBreakExpr));
+        solver.add(context.mkOr(context.mkNot(iterationConditionExpr), currentBreakExpr, currentReturnExpr, currentThrowExpr));
     }
 
     @Override
@@ -482,6 +486,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     /**
      * Merges thenMap and elseMap into resultMap via ITE function.
+     * If cond is null, a fresh cond will be created for each entry.
      */
     private <T extends Expr> void mergeMaps(BoolExpr cond, Map<CtReference, T> thenMap, Map<CtReference, T> elseMap, Map<CtReference, T> resultMap)
     {
@@ -500,7 +505,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
             if (thenBranchValue != null && elseBranchValue != null)
             {
-                T iteExpr = (T) context.mkITE(cond, thenBranchValue, elseBranchValue);
+                BoolExpr arg = cond == null ? (BoolExpr) context.mkFreshConst("", context.mkBoolSort()) : cond;
+                T iteExpr = (T) context.mkITE(arg, thenBranchValue, elseBranchValue);
                 resultMap.put(reference, iteExpr);
             }
         }
@@ -508,6 +514,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     /**
      * Merges two branches into the current.
+     * If cond is null, a fresh cond will be created for each entry.
      */
     private void mergeBranches(BoolExpr cond, BranchData thenBranchData, BranchData elseBranchData)
     {
@@ -685,7 +692,6 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             checkCondition(caseExpression);
         }
 
-
         BoolExpr commonConditionExpr = null;
         for (CtCase<? super S> aCase : cases)
         {
@@ -707,10 +713,25 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     private void visitTryBranch(CtBlock<?> block)
     {
-        // Reset all variables that are changed in try-catch
-        ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
-        resetScanner.scan(block);
-        visitBranch(makeFreshBool(context), block);
+        // Each variable in try block becomes ITE(freshCond, xTry, xBeforeTry)
+        BranchData thenBranchData = visitBranch(context.mkTrue(), block);
+        BranchData elseBranchData = new BranchData(variablesMap, memory);
+        mergeBranches(null, thenBranchData, elseBranchData);
+    }
+
+    private void visitCatchBranches(List<CtCatch> catchers)
+    {
+        // Only one catcher can be executed at a time
+        BoolExpr notPrevCatchersExpr = null;
+        for (CtCatch catcher : catchers)
+        {
+            BoolExpr freshCondExpr = makeFreshBool(context);
+            BoolExpr branchExpr = notPrevCatchersExpr == null ? freshCondExpr : context.mkAnd(notPrevCatchersExpr, freshCondExpr);
+            BranchData thenBranchData = visitBranch(branchExpr, catcher.getBody());
+            BranchData elseBranchData = new BranchData(variablesMap, memory);
+            mergeBranches(branchExpr, thenBranchData, elseBranchData);
+            notPrevCatchersExpr = notPrevCatchersExpr == null ? context.mkNot(freshCondExpr) : context.mkAnd(notPrevCatchersExpr, context.mkNot(freshCondExpr));
+        }
     }
 
     @Override
@@ -723,8 +744,15 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         BoolExpr oldThrowExpr = getThrowExpr();
         visitTryBranch(tryBody);
         variablesMap.put(throwFlagReference, oldThrowExpr);
-        catchers.forEach(c -> visitTryBranch(c.getBody()));
+        visitCatchBranches(catchers);
+
+        // Finalizer 'ignores' return and throw
+        BoolExpr oldReturnExpr = getReturnExpr();
+        variablesMap.put(returnFlagReference, context.mkFalse());
+        variablesMap.put(throwFlagReference, context.mkFalse());
         scan(finalizer);
+        variablesMap.put(returnFlagReference, oldReturnExpr);
+        variablesMap.put(throwFlagReference, oldThrowExpr);
     }
 
     @Override
