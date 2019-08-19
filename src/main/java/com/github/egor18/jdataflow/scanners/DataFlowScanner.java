@@ -1193,6 +1193,16 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         lambda.putMetadata("value", currentResult);
     }
 
+    @Override
+    public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(CtExecutableReferenceExpression<T, E> expression)
+    {
+        // Create new object for this executable reference
+        int nextPointer = memory.nextPointer();
+        IntExpr executableReferenceValue = context.mkInt(nextPointer);
+        currentResult = applyCasts(executableReferenceValue, expression.getType(), expression.getTypeCasts());
+        expression.putMetadata("value", currentResult);
+    }
+
     private void visitAssignment(CtExpression<?> left, Expr leftValue, CtTypeReference<?> leftType,
                                  Expr rightValue, CtTypeReference<?> rightType)
     {
