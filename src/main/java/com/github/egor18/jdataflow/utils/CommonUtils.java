@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.Map;
 
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
+import static com.github.egor18.jdataflow.utils.TypeUtils.makeFreshInt;
 
 public final class CommonUtils
 {
@@ -45,7 +46,7 @@ public final class CommonUtils
             {
                 if (targetValue == null)
                 {
-                    return targetValue;
+                    return makeFreshInt(context);
                 }
                 targetValue = (IntExpr) memory.read(((CtFieldRead) t).getVariable(), targetValue);
             }
@@ -53,7 +54,7 @@ public final class CommonUtils
             {
                 if (targetValue == null)
                 {
-                    return targetValue;
+                    return makeFreshInt(context);
                 }
                 CtArrayRead arrayRead = (CtArrayRead) t;
                 CtExpression index = arrayRead.getIndexExpression();
@@ -78,17 +79,17 @@ public final class CommonUtils
                 targetValue = (IntExpr) variablesMap.get(accessedType);
                 if (targetValue == null)
                 {
-                    targetValue = (IntExpr) context.mkFreshConst("", context.getIntSort());
+                    targetValue = makeFreshInt(context);
                     variablesMap.put(accessedType, targetValue);
                 }
             }
             else
             {
                 // Impure functions and other unknown stuff
-                targetValue = (IntExpr) context.mkFreshConst("", context.getIntSort());
+                targetValue = makeFreshInt(context);
             }
         }
 
-        return targetValue;
+        return targetValue != null ? targetValue : makeFreshInt(context);
     }
 }

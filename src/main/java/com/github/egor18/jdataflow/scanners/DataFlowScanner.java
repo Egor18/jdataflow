@@ -1010,7 +1010,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                     index = variablesMap.get(declaringType);
                     if (index == null)
                     {
-                        index = context.mkFreshConst("", context.getIntSort());
+                        index = makeFreshInt(context);
                         variablesMap.put(declaringType, index);
                     }
                 }
@@ -1315,7 +1315,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
         else if (TypeUtils.isString(literal.getType()))
         {
-            valueExpr = context.mkFreshConst("", context.getIntSort());
+            valueExpr = makeFreshInt(context);
             solver.add(context.mkDistinct(valueExpr, context.mkInt(Memory.nullPointer())));
         }
         else
@@ -1479,7 +1479,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             // Handle unknown types
             if (!isCalculable(leftType) || leftValue == null)
             {
-                return isBooleanOperatorKind(kind) ? context.mkFreshConst("", context.getBoolSort()) : null;
+                return isBooleanOperatorKind(kind) ? makeFreshBool(context) : null;
             }
 
             // Unboxing conversion
@@ -1491,7 +1491,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             // Handle unknown types
             if (!isCalculable(rightType) || rightValue == null)
             {
-                return isBooleanOperatorKind(kind) ? context.mkFreshConst("", context.getBoolSort()) : null;
+                return isBooleanOperatorKind(kind) ? makeFreshBool(context) : null;
             }
 
             // Unboxing conversion
@@ -1597,7 +1597,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 }
                 else
                 {
-                    IntExpr result = (IntExpr) context.mkFreshConst("", context.getIntSort());
+                    IntExpr result = makeFreshInt(context);
                     solver.add(context.mkDistinct(result, context.mkInt(Memory.nullPointer())));
                     return result;
                 }
@@ -1689,7 +1689,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         // Handle unknown types
         if (!isCalculable(operandType) || operandValue == null)
         {
-            currentResult = isBooleanOperatorKind(kind) ? context.mkFreshConst("", context.getBoolSort()) : null;
+            currentResult = isBooleanOperatorKind(kind) ? makeFreshBool(context) : null;
             operator.putMetadata("value", currentResult);
             return;
         }

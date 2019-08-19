@@ -1,9 +1,6 @@
 package com.github.egor18.jdataflow.utils;
 
-import com.microsoft.z3.BoolExpr;
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
-import com.microsoft.z3.Sort;
+import com.microsoft.z3.*;
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.reference.CtTypeReference;
 
@@ -241,5 +238,13 @@ public final class TypeUtils
     public static BoolExpr makeFreshBool(Context context)
     {
         return (BoolExpr) context.mkFreshConst("", context.getBoolSort());
+    }
+
+    /**
+     * Creates fresh z3 int const.
+     */
+    public static IntExpr makeFreshInt(Context context)
+    {
+        return (IntExpr) context.mkFreshConst("", context.getIntSort());
     }
 }
