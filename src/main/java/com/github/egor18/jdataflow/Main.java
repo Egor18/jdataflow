@@ -39,7 +39,7 @@ public class Main
         classpathFileOption.setArgs(1);
         options.addOption(classpathFileOption);
 
-        Option noFailsafeOption = new Option(null, "no-failsafe", false, "terminate analysis immediately on any error");
+        Option noFailsafeOption = new Option(null, "no-failsafe", false, "terminate analysis immediately on any internal error");
         noFailsafeOption.setRequired(false);
         options.addOption(noFailsafeOption);
 
