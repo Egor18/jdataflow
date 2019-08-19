@@ -12,7 +12,7 @@ public final class PromotionUtils
     /**
      * Extends bit-vector to the size of int (32 bits).
      */
-    private static BitVecExpr extendToInteger(Context context, BitVecExpr bitVector, boolean isSigned)
+    public static BitVecExpr extendToInteger(Context context, BitVecExpr bitVector, boolean isSigned)
     {
         if (isSigned)
         {
@@ -27,7 +27,7 @@ public final class PromotionUtils
     /**
      * Extends bit-vector to the size of long (64 bits).
      */
-    private static BitVecExpr extendToLong(Context context, BitVecExpr bitVector, boolean isSigned)
+    public static BitVecExpr extendToLong(Context context, BitVecExpr bitVector, boolean isSigned)
     {
         if (isSigned)
         {

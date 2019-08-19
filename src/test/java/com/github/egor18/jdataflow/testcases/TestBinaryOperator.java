@@ -135,4 +135,83 @@ public class TestBinaryOperator
         if (x % divisor > 0) {} //@ALWAYS_FALSE
         if (x % divisor == 0) {} //ok
     }
+
+    void testShift1()
+    {
+        if (('z' << 3) == 976) {} //@ALWAYS_TRUE
+        if (('z' << 3L) == 976) {} //@ALWAYS_TRUE
+        if ((3 << 'a') == 6) {} //@ALWAYS_TRUE
+        if ((3L << 'a') == 25769803776L) {} //@ALWAYS_TRUE
+        if (('a' << 'b') == 388) {} //@ALWAYS_TRUE
+
+        if ((1 << 3) == 8) {} //@ALWAYS_TRUE
+        if ((1 << 3L) == 8) {} //@ALWAYS_TRUE
+        if ((1 << 50) == 262144) {} //@ALWAYS_TRUE
+        if ((1 << 50L) == 262144) {} //@ALWAYS_TRUE
+        if ((1 << 18) == 262144) {} //@ALWAYS_TRUE
+
+        if ((10 << 3) == 80) {} //@ALWAYS_TRUE
+        if ((10 << 3L) == 80) {} //@ALWAYS_TRUE
+
+        if ((1L << 3) == 8) {} //@ALWAYS_TRUE
+        if ((1L << 3L) == 8) {} //@ALWAYS_TRUE
+        if ((1L << 50) == 1125899906842624L) {} //@ALWAYS_TRUE
+        if ((1L << 50L) == 1125899906842624L) {} //@ALWAYS_TRUE
+        if ((1L << 18) == 262144) {} //@ALWAYS_TRUE
+    }
+
+    void testShift2()
+    {
+        if (('z' >> 3) == 15) {} //@ALWAYS_TRUE
+        if (('z' >> 3L) == 15) {} //@ALWAYS_TRUE
+        if ((3 >> 'a') == 1) {} //@ALWAYS_TRUE
+        if ((3L >> 'a') == 0) {} //@ALWAYS_TRUE
+        if (('a' >> 'b') == 24) {} //@ALWAYS_TRUE
+
+        if ((1 >> 3) == 0) {} //@ALWAYS_TRUE
+        if ((1 >> 3L) == 0) {} //@ALWAYS_TRUE
+        if ((1 >> 50) == 0) {} //@ALWAYS_TRUE
+        if ((1 >> 50L) == 0) {} //@ALWAYS_TRUE
+        if ((1 >> 18) == 0) {} //@ALWAYS_TRUE
+
+        if ((10 >> 3) == 1) {} //@ALWAYS_TRUE
+        if ((10 >> 3L) == 1) {} //@ALWAYS_TRUE
+
+        if ((100L >> 3) == 12) {} //@ALWAYS_TRUE
+        if ((100L >> 3L) == 12) {} //@ALWAYS_TRUE
+        if ((100L >> 50) == 0) {} //@ALWAYS_TRUE
+        if ((100L >> 50L) == 0) {} //@ALWAYS_TRUE
+        if ((100L >> 18) == 0) {} //@ALWAYS_TRUE
+    }
+
+    void testShift3()
+    {
+        if (('z' >>> 3) == 15) {} //@ALWAYS_TRUE
+        if (('z' >>> 3L) == 15) {} //@ALWAYS_TRUE
+        if ((3 >>> 'a') == 1) {} //@ALWAYS_TRUE
+        if ((3L >>> 'a') == 0) {} //@ALWAYS_TRUE
+        if (('a' >>> 'b') == 24) {} //@ALWAYS_TRUE
+
+        if ((1 >>> 3) == 0) {} //@ALWAYS_TRUE
+        if ((1 >>> 3L) == 0) {} //@ALWAYS_TRUE
+        if ((1 >>> 50) == 0) {} //@ALWAYS_TRUE
+        if ((1 >>> 50L) == 0) {} //@ALWAYS_TRUE
+        if ((1 >>> 18) == 0) {} //@ALWAYS_TRUE
+
+        if ((10 >>> 3) == 1) {} //@ALWAYS_TRUE
+        if ((10 >>> 3L) == 1) {} //@ALWAYS_TRUE
+
+        if ((100L >>> 3) == 12) {} //@ALWAYS_TRUE
+        if ((100L >>> 3L) == 12) {} //@ALWAYS_TRUE
+        if ((100L >>> 50) == 0) {} //@ALWAYS_TRUE
+        if ((100L >>> 50L) == 0) {} //@ALWAYS_TRUE
+        if ((100L >>> 18) == 0) {} //@ALWAYS_TRUE
+    }
+
+    void testShift4(short s, byte b)
+    {
+        s = 0b1100;
+        b = 2;
+        if ((s >> b) == 0b11) {} //@ALWAYS_TRUE
+    }
 }

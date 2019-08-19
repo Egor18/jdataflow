@@ -18,8 +18,7 @@ import spoon.reflect.visitor.filter.TypeFilter;
 import java.util.*;
 
 import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
-import static com.github.egor18.jdataflow.utils.PromotionUtils.promoteNumericValue;
-import static com.github.egor18.jdataflow.utils.PromotionUtils.promoteNumericValues;
+import static com.github.egor18.jdataflow.utils.PromotionUtils.*;
 import static com.github.egor18.jdataflow.utils.TypeUtils.*;
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
 import static com.github.egor18.jdataflow.utils.TypeUtils.isCalculable;
@@ -1501,12 +1500,42 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 rightValue = memory.read(rightType.unbox(), (IntExpr) rightValue);
             }
 
-            // Binary Numeric Promotion
-            if (leftValue instanceof BitVecExpr && rightValue instanceof BitVecExpr)
+            if (kind == BinaryOperatorKind.SL || kind == BinaryOperatorKind.SR || kind == BinaryOperatorKind.USR)
             {
-                Expr[] result = promoteNumericValues(context, leftValue, leftType, rightValue, rightType);
-                leftValue = result[0];
-                rightValue = result[1];
+                // The type of the shift expression is the promoted type of the left-hand operand.
+                // If the promoted type of the left-hand operand is int, then only 5 lowest-order bits of the right-hand operand are used as the shift distance.
+                // If the promoted type of the left-hand operand is long, then only 6 lowest-order bits of the right-hand operand are used as the shift distance.
+                leftValue = promoteNumericValue(context, leftValue, leftType);
+                int leftSortSize = ((BitVecExpr) leftValue).getSortSize();
+                int rightSortSize = ((BitVecExpr) rightValue).getSortSize();
+                boolean isLong = leftSortSize == 64;
+                int mask = isLong ? 0b111111 : 0b11111;
+                if (rightSortSize > leftSortSize)
+                {
+                    rightValue = context.mkExtract(leftSortSize - 1, 0, (BitVecExpr) rightValue);
+                }
+                else if (rightSortSize != leftSortSize)
+                {
+                    if (isLong)
+                    {
+                        rightValue = extendToLong(context, (BitVecExpr) rightValue, !TypeUtils.isChar(rightType));
+                    }
+                    else
+                    {
+                        rightValue = extendToInteger(context, (BitVecExpr) rightValue, !TypeUtils.isChar(rightType));
+                    }
+                }
+                rightValue = context.mkBVAND((BitVecExpr) rightValue, context.mkBV(mask, leftSortSize));
+            }
+            else
+            {
+                // Binary Numeric Promotion
+                if (leftValue instanceof BitVecExpr && rightValue instanceof BitVecExpr)
+                {
+                    Expr[] result = promoteNumericValues(context, leftValue, leftType, rightValue, rightType);
+                    leftValue = result[0];
+                    rightValue = result[1];
+                }
             }
         }
 
