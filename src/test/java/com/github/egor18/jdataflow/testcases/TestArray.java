@@ -411,4 +411,10 @@ public class TestArray
             int b = objects[i].f();
         }
     }
+
+    void testArrayIndexUnboxing1(Integer i, Object[][] values)
+    {
+        values[i][i] = null;
+        if (values[i][i] == null) {} //@ALWAYS_TRUE
+    }
 }

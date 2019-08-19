@@ -63,6 +63,11 @@ public final class CommonUtils
                 {
                     arrayIndex = context.mkFreshConst("", context.mkBitVecSort(32));
                 }
+                else if (!getActualType(index).isPrimitive())
+                {
+                    // Unboxing conversion
+                    arrayIndex = memory.read(getActualType(index).unbox(), (IntExpr) arrayIndex);
+                }
                 targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) arrayRead.getTarget().getType(), targetValue, arrayIndex);
             }
             else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)
