@@ -1131,6 +1131,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtConstructor(CtConstructor<T> constructor)
     {
+        System.out.println("Analyzing constructor");
         visitMethod(constructor.getBody(), constructor.getParameters());
     }
 
@@ -1733,6 +1734,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                     CtExpression<Integer> index = ((CtArrayWrite<T>) operand).getIndexExpression();
                     CtTypeReference<?> indexType = getActualType(index);
                     Expr indexExpr = (Expr) index.getMetadata("value");
+
+                    // Unboxing conversion
+                    if (!indexType.isPrimitive())
+                    {
+                        indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
+                    }
+
                     indexExpr = promoteNumericValue(context, indexExpr, indexType);
                     CtTypeReference<?> arrayType = ((CtArrayWrite<T>) operand).getTarget().getType();
                     prevExpr = memory.readArray((CtArrayTypeReference) arrayType, targetExpr, indexExpr);

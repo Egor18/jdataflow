@@ -417,4 +417,13 @@ public class TestArray
         values[i][i] = null;
         if (values[i][i] == null) {} //@ALWAYS_TRUE
     }
+
+    void testArrayIndexUnboxing2()
+    {
+        int[] arr = new int[10];
+        Integer idx = 1;
+        arr[idx] = 42;
+        arr[idx]++;
+        if (arr[idx] == 43) {} //@ALWAYS_TRUE
+    }
 }
