@@ -3,6 +3,7 @@ package com.github.egor18.jdataflow.utils;
 import com.microsoft.z3.*;
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.reference.CtTypeReference;
+import spoon.reflect.reference.CtWildcardReference;
 
 public final class TypeUtils
 {
@@ -188,6 +189,11 @@ public final class TypeUtils
      */
     public static boolean isImmutable(CtTypeReference<?> type)
     {
+        if (type instanceof CtWildcardReference)
+        {
+            return false;
+        }
+
         return type.isPrimitive()
                || type.unbox().isPrimitive()
                || type.getQualifiedName().equals("java.lang.String");
