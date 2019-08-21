@@ -188,6 +188,15 @@ public class TestCast
         if (y == null) {} //@ALWAYS_FALSE
     }
 
+    void testCast19(boolean cond, double[] arr)
+    {
+        if (((int) (Object) this) > 0) {}
+        if (((int) (Object) null) > 0) {}
+        if ((int)(cond ? 10.0 : 11.0) > 0) {}
+        if ((int)(Object)"hello" > 0) {}
+        if ((int)arr[0] != 42) {}
+    }
+
     void testInvocationCast1()
     {
         if ((byte) unknownFunc3() == 300) {} //@ALWAYS_FALSE

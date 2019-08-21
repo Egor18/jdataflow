@@ -639,7 +639,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         mergeBranches(conditionExpr, thenBranchData, elseBranchData);
 
-        currentResult = context.mkITE(conditionExpr, thenExpr, elseExpr);
+        Expr conditionalExpr = context.mkITE(conditionExpr, thenExpr, elseExpr);
+        currentResult = applyCasts(conditionalExpr, conditional.getType(), conditional.getTypeCasts());
         conditional.putMetadata("value", currentResult);
         checkConditionalResult(conditional);
     }
@@ -1330,10 +1331,10 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         else
         {
             Object value = ((CtLiteral<?>) literal).getValue();
-            valueExpr = applyCasts(makeLiteral(value), literal.getType(), literal.getTypeCasts());
+            valueExpr = makeLiteral(value);
         }
 
-        currentResult = valueExpr;
+        currentResult = applyCasts(valueExpr, literal.getType(), literal.getTypeCasts());
         literal.putMetadata("value", currentResult);
     }
 
@@ -1359,14 +1360,16 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtThisAccess(CtThisAccess<T> thisAccess)
     {
-        currentResult = context.mkInt(Memory.thisPointer());
+        Expr thisValue = context.mkInt(Memory.thisPointer());
+        currentResult = applyCasts(thisValue, thisAccess.getType(), thisAccess.getTypeCasts());
         thisAccess.putMetadata("value", currentResult);
     }
 
     @Override
     public <T> void visitCtSuperAccess(CtSuperAccess<T> superAccess)
     {
-        currentResult = context.mkInt(Memory.thisPointer());
+        Expr superValue = context.mkInt(Memory.thisPointer());
+        currentResult = applyCasts(superValue, superAccess.getType(), superAccess.getTypeCasts());
         superAccess.putMetadata("value", currentResult);
     }
 
@@ -1424,7 +1427,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         indexExpr = promoteNumericValue(context, indexExpr, indexType);
         CtArrayTypeReference<?> arrayType = (CtArrayTypeReference) getActualType(arrayRead.getTarget());
-        currentResult = memory.readArray(arrayType, targetExpr, indexExpr);
+        Expr arrayReadExpr = memory.readArray(arrayType, targetExpr, indexExpr);
+        currentResult = applyCasts(arrayReadExpr, arrayRead.getType(), arrayRead.getTypeCasts());
         arrayRead.putMetadata("value", currentResult);
         checkArrayRead(arrayRead);
         visitDereference(targetExpr);
