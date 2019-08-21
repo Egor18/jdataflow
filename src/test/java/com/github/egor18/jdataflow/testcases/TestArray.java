@@ -426,4 +426,12 @@ public class TestArray
         arr[idx]++;
         if (arr[idx] == 43) {} //@ALWAYS_TRUE
     }
+
+    native Integer getIndex();
+
+    void testArrayIndexUnboxing3()
+    {
+        double[] arr = new double[10];
+        arr[getIndex()] += 1;
+    }
 }

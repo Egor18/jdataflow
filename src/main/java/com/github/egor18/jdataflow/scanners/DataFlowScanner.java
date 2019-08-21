@@ -1294,8 +1294,16 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         {
             CtArrayWrite arrayWrite = (CtArrayWrite) left;
             CtExpression index = arrayWrite.getIndexExpression();
-            Expr arrayIndex = (Expr) index.getMetadata("value");
-            leftData = memory.readArray((CtArrayTypeReference) arrayWrite.getTarget().getType(), (IntExpr) leftValue, arrayIndex);
+            CtTypeReference<?> indexType = getActualType(index);
+            Expr indexExpr = (Expr) index.getMetadata("value");
+
+            // Unboxing conversion
+            if (!indexType.isPrimitive())
+            {
+                indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
+            }
+
+            leftData = memory.readArray((CtArrayTypeReference) arrayWrite.getTarget().getType(), (IntExpr) leftValue, indexExpr);
         }
 
         rightValue = calcBinaryOperator(leftData, leftType, rightValue, rightType, assignment.getKind());
