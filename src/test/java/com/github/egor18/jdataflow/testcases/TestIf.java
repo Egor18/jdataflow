@@ -138,7 +138,7 @@ public class TestIf
         a = false;
         if (c)
         {
-            a = c; //@ALWAYS_TRUE
+            a = c;
             if (a) {} //@ALWAYS_TRUE
             if (c) {} //@ALWAYS_TRUE
         }
@@ -299,7 +299,7 @@ public class TestIf
         {
             b = true;
             b = false;
-            a = b; //@ALWAYS_FALSE
+            a = b;
         }
         else
         {
@@ -327,7 +327,7 @@ public class TestIf
     {
         if (b)
         {
-            c = b; //@ALWAYS_TRUE
+            c = b;
             if (c) {} //@ALWAYS_TRUE
         }
         else
@@ -340,7 +340,7 @@ public class TestIf
     {
         if (!!b)
         {
-            c = b; //@ALWAYS_TRUE
+            c = b;
             if (c) {} //@ALWAYS_TRUE
             if (b) {} //@ALWAYS_TRUE
         }
@@ -365,7 +365,7 @@ public class TestIf
     {
         if (b)
         {
-            c = b; //@ALWAYS_TRUE
+            c = b;
             if (c) {} //@ALWAYS_TRUE
         }
         else
@@ -378,7 +378,7 @@ public class TestIf
     {
         if (c)
         {
-            a = c; //@ALWAYS_TRUE
+            a = c;
             if (a) {} //@ALWAYS_TRUE
         }
         if (c) {}
@@ -613,8 +613,8 @@ public class TestIf
     {
         if (a)
         {
-            boolean b = a; //@ALWAYS_TRUE
-            a = b; //@ALWAYS_TRUE
+            boolean b = a;
+            a = b;
             a = !b; //@ALWAYS_FALSE
             if (b) {} //@ALWAYS_TRUE
         }

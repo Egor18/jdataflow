@@ -134,6 +134,10 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
     @Override
     public void checkAssignmentRight(CtExpression<?> right)
     {
-        checkExpression(right);
+        // There is no need to warn about a = b = c = true or a = constant
+        if (!(right instanceof CtAssignment) && !(right instanceof CtVariableRead))
+        {
+            checkExpression(right);
+        }
     }
 }

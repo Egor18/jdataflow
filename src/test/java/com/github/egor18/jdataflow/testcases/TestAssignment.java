@@ -103,4 +103,17 @@ public class TestAssignment
         boolean b = false;
         if ((b = true) && true) {} //@ALWAYS_TRUE
     }
+
+    void testAssignment13()
+    {
+        boolean a, b, c;
+        a = b = c = false; //ok
+        a = b = c = true; //ok
+    }
+
+    void testAssignment14()
+    {
+        final boolean constant = true;
+        boolean a = constant; //ok
+    }
 }
