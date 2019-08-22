@@ -28,15 +28,8 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
         super(scanner);
     }
 
-    private boolean isLiteralLoopCondition(CtExpression<?> expression)
+    private boolean isLoopCondition(CtElement parent, CtExpression<?> expression)
     {
-        if (!(expression instanceof CtLiteral) || !((CtLiteral) expression).getValue().equals(true))
-        {
-            return false;
-        }
-
-        CtElement parent = expression.getParent();
-
         return (parent instanceof CtWhile && ((CtWhile) parent).getLoopingExpression() == expression)
                 || (parent instanceof CtDo && ((CtDo) parent).getLoopingExpression() == expression)
                 || (parent instanceof CtFor && ((CtFor) parent).getExpression() == expression);
@@ -51,7 +44,9 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
         }
 
         // There is no need to warn about while (true) {...}
-        if (isLiteralLoopCondition(expression))
+        if (expression instanceof CtLiteral
+            && ((CtLiteral<?>) expression).getValue().equals(true)
+            && isLoopCondition(expression.getParent(), expression))
         {
             return;
         }
@@ -68,6 +63,7 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
 
         if (conditionStatus == ConditionStatus.ALWAYS_TRUE)
         {
+            // On the first iteration we should not warn about always true expressions inside loop entry condition
             if (isInsideLoopEntryCondition())
             {
                 return;
@@ -76,6 +72,11 @@ public class AlwaysTrueFalseChecker extends AbstractChecker
         }
         else if (conditionStatus == ConditionStatus.ALWAYS_FALSE)
         {
+            // On the first iteration we should warn only about always false loop entry condition
+            if (isInsideLoopEntryCondition() && !isLoopCondition(expression.getParent(CtLoop.class), expression))
+            {
+                return;
+            }
             addWarning(new Warning(expression, WarningKind.ALWAYS_FALSE));
         }
     }

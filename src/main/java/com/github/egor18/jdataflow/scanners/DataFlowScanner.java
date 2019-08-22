@@ -406,6 +406,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         else
         {
             ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
+            resetScanner.scan(loopCondition);
             Arrays.stream(loopBody).forEach(resetScanner::scan);
             iterationBranchData = visitBranch(context.mkTrue(), loopBody);
             iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition);

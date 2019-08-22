@@ -761,6 +761,27 @@ public class TestLoops
         while (i < 10); //@ALWAYS_TRUE
     }
 
+    void testDo9()
+    {
+        int i = 0;
+        int count = 500;
+        do
+        {
+            i++;
+        }
+        while (i < count); //ok
+    }
+
+    void testDo10()
+    {
+        int i = 0;
+        int count = 500;
+        do
+        {
+        }
+        while (i++ < count); //ok
+    }
+
     void testFor1()
     {
         int i = 42;
@@ -922,5 +943,78 @@ public class TestLoops
             p = p.getNext();
         }
         while (true); //ok
+    }
+
+    public native boolean g1();
+    public native boolean g2();
+
+    void testLoopCondition1()
+    {
+        boolean a = false;
+        boolean b = false;
+        while (!(a && b)) //ok
+        {
+            if (!a)
+            {
+                a = g1();
+            }
+
+            if (!b)
+            {
+                b = g2();
+            }
+        }
+    }
+
+    void testLoopCondition2()
+    {
+        boolean a = false;
+        boolean b = false;
+        boolean c = true;
+        while (!(a && b && c)) //@ALWAYS_TRUE
+        {
+            if (!a)
+            {
+                a = g1();
+            }
+
+            if (!b)
+            {
+                b = g2();
+            }
+        }
+    }
+
+    void testLoopCondition3()
+    {
+        boolean a = false;
+        boolean b = false;
+        while (!a || !b) //ok
+        {
+            if (!a)
+            {
+                a = g1();
+            }
+
+            if (!b)
+            {
+                b = g2();
+            }
+        }
+    }
+
+    void testLoopCondition4()
+    {
+        boolean a = false;
+        boolean b = false;
+        for (; !(a && b); a = g1(), b = g2()) {} //ok
+    }
+
+    void testLoopCondition5()
+    {
+        boolean a = false;
+        boolean b = false;
+        boolean c = true;
+        for (; !(a && b && c); a = g1(), b = g2()) {} //@ALWAYS_TRUE
     }
 }
