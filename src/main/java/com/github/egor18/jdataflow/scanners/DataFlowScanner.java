@@ -958,6 +958,17 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     }
 
     @Override
+    public void visitCtSynchronized(CtSynchronized synchro)
+    {
+        // There is synchronization so something could be changed from another thread => reset this
+        IntNum thisExpr = context.mkInt(Memory.thisPointer());
+        CtTypeReference thisType = synchro.getParent(CtType.class).getReference();
+        memory.resetObject(thisType, thisExpr);
+        scan(synchro.getExpression());
+        scan(synchro.getBlock());
+    }
+
+    @Override
     public <R> void visitCtReturn(CtReturn<R> returnStatement)
     {
         CtExpression<R> returnedExpression = returnStatement.getReturnedExpression();
