@@ -2,3 +2,8 @@
 .idea/
 out/
 build/
+tester/diffs/
+tester/outputs/
+tester/projects/
+tester/reports/
+tester/status.json

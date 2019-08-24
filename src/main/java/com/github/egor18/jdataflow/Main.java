@@ -58,6 +58,13 @@ public class Main
         includeOption.setArgs(Option.UNLIMITED_VALUES);
         options.addOption(includeOption);
 
+        Option relativizeOption = new Option("r", "Relativize paths in report against this path");
+        relativizeOption.setLongOpt("relativize");
+        relativizeOption.setRequired(false);
+        relativizeOption.setArgName("arg");
+        relativizeOption.setArgs(1);
+        options.addOption(relativizeOption);
+
         Option noFailsafeOption = new Option(null, "no-failsafe", false, "Terminate analysis immediately on any internal error");
         noFailsafeOption.setRequired(false);
         options.addOption(noFailsafeOption);
@@ -123,6 +130,7 @@ public class Main
         String outputFile = cmd.getOptionValue("o");
         String[] excludes = cmd.getOptionValues("e");
         String[] includes = cmd.getOptionValues("i");
+        String relativizer = cmd.getOptionValue("r");
         boolean noFailsafe = cmd.hasOption("no-failsafe");
 
         Launcher launcher = new Launcher();
@@ -153,6 +161,11 @@ public class Main
                              .filter(t -> !isSubElement(t.getPosition().getFile(), excludes)
                                           || isSubElement(t.getPosition().getFile(), includes))
                              .forEach(scanner::scan);
+
+        if (relativizer != null)
+        {
+            scanner.getWarnings().forEach(w -> w.relativizer = relativizer);
+        }
 
         if (outputFile != null)
         {

@@ -1,0 +1,7 @@
+WARNING: Condition '(this) == (com.github.javaparser.JavaToken.INVALID)' is always false when reached (./projects/javaparser/javaparser-core/src/main/java/com/github/javaparser/JavaToken.java:193)
+WARNING: Condition 'true' is always true when reached (./projects/javaparser/javaparser-core/src/main/java/com/github/javaparser/resolution/types/ResolvedReferenceType.java:180)
+WARNING: Condition 'staticOnly' is always true when reached (./projects/javaparser/javaparser-symbol-solver-core/src/main/java/com/github/javaparser/symbolsolver/javassistmodel/JavassistClassDeclaration.java:201)
+WARNING: Condition 'staticOnly' is always true when reached (./projects/javaparser/javaparser-symbol-solver-core/src/main/java/com/github/javaparser/symbolsolver/javassistmodel/JavassistEnumDeclaration.java:180)
+WARNING: Condition 'staticOnly' is always true when reached (./projects/javaparser/javaparser-symbol-solver-core/src/main/java/com/github/javaparser/symbolsolver/javassistmodel/JavassistInterfaceDeclaration.java:110)
+WARNING: Condition 'staticOnly' is always true when reached (./projects/javaparser/javaparser-symbol-solver-core/src/main/java/com/github/javaparser/symbolsolver/reflectionmodel/ReflectionClassDeclaration.java:141)
+WARNING: Condition 'staticOnly' is always true when reached (./projects/javaparser/javaparser-symbol-solver-core/src/main/java/com/github/javaparser/symbolsolver/reflectionmodel/ReflectionMethodResolutionLogic.java:49)

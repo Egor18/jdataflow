@@ -1,0 +1,8 @@
+WARNING: Condition '(((2 * k) + 1) <= (this.size))' is always false when reached (./projects/algorithms/DataStructures/Heaps/MinPriorityQueue.java:83)
+WARNING: Condition '(this.heap[(2 * k)]) < (this.heap[k])' is always true when reached (./projects/algorithms/DataStructures/Heaps/MinPriorityQueue.java:93)
+WARNING: Condition '((this.heap[k]) > (this.heap[((2 * k) + 1)]))' is always true when reached (./projects/algorithms/DataStructures/Heaps/MinPriorityQueue.java:95)
+WARNING: Condition '((this.heap[k]) > (this.heap[(2 * k)])) || ((this.heap[k]) > (this.heap[((2 * k) + 1)]))' is always true when reached (./projects/algorithms/DataStructures/Heaps/MinPriorityQueue.java:95)
+WARNING: Condition '(head) == null' is always false when reached (./projects/algorithms/DataStructures/Lists/DoublyLinkedList.java:90)
+WARNING: Condition '(tail) == null' is always false when reached (./projects/algorithms/DataStructures/Lists/DoublyLinkedList.java:104)
+WARNING: Condition '(findNode.key) == (node.key)' is always true when reached (./projects/algorithms/DataStructures/Trees/RedBlackBST.java:56)
+WARNING: Condition '(node.key) >= (temp.key)' is always true when reached (./projects/algorithms/DataStructures/Trees/RedBlackBST.java:79)
