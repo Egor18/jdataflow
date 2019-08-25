@@ -145,7 +145,7 @@ public class Memory
             CtReference reference = entry.getKey();
             if (reference instanceof CtFieldReference)
             {
-                if (((CtFieldReference) reference).getDeclaringType().equals(type))
+                if (((CtFieldReference) reference).getDeclaringType().getQualifiedName().equals(type.getQualifiedName()))
                 {
                     Sort sort = getTypeSort(context, ((CtFieldReference) reference).getType());
                     write(reference, address, context.mkFreshConst("", sort));
@@ -153,7 +153,7 @@ public class Memory
             }
             else if (reference instanceof CtArrayTypeReference)
             {
-                if (reference.equals(type))
+                if (((CtArrayTypeReference) reference).getQualifiedName().equals(type.getQualifiedName()))
                 {
                     ArrayExpr memoryArray = memoryMap.get(type);
                     ArrayExpr oldArrayValue = (ArrayExpr) context.mkSelect(memoryArray, address);

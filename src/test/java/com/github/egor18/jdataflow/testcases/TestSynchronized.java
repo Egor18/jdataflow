@@ -1,9 +1,10 @@
 package com.github.egor18.jdataflow.testcases;
 
-public class TestSynchronized
+public class TestSynchronized<T>
 {
     public int count;
     public volatile Object object;
+    private volatile T genObject;
 
     void testSynchronized1()
     {
@@ -29,6 +30,17 @@ public class TestSynchronized
                 {
                     object = new Object();
                 }
+            }
+        }
+    }
+
+    void testSynchronized3()
+    {
+        if (this.genObject == null)
+        {
+            synchronized (this)
+            {
+                if (this.genObject == null) {} //ok
             }
         }
     }
