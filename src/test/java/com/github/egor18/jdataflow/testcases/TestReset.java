@@ -17,6 +17,8 @@ public class TestReset
     private native void func4(C1 arg1);
     private native void func5(C2 arg1);
     private native void func6(String arg1);
+    native void g1(Object[] arr);
+    native void g2(Object o);
 
     void testReset1(C1 a)
     {
@@ -337,5 +339,50 @@ public class TestReset
         }
         if (o.arr1[0] == 0) {}
         if (o.arr1[0] == 5) {}
+    }
+
+    void testArrayReset6()
+    {
+        Object[] arr = {null};
+        Object[] tmp = arr;
+        arr[0] = null;
+        if (arr == null) {} //@ALWAYS_FALSE
+        if (tmp == arr) {} //@ALWAYS_TRUE
+        if (arr[0] == null) {} //@ALWAYS_TRUE
+        g1(arr);
+        if (arr == null) {} //@ALWAYS_FALSE
+        if (tmp == arr) {} //@ALWAYS_TRUE
+        if (arr[0] == null) {} //ok
+    }
+
+    void testArrayReset7()
+    {
+        Object[] arr = {null};
+        if (arr[0] == null) {} //@ALWAYS_TRUE
+        g2(arr[0]);
+        if(arr[0] == null) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayReset8()
+    {
+        C4[] arr = {new C4()};
+        arr[0].x = 1;
+        arr[0].y = 2;
+        if (arr[0].x == 1) {} //@ALWAYS_TRUE
+        if (arr[0].y == 2) {} //@ALWAYS_TRUE
+        g1(arr);
+        if (arr[0].x == 1) {} //ok
+        if (arr[0].y == 2) {} //ok
+    }
+
+    void testArrayReset9()
+    {
+        Object[] arr1 = {null};
+        Object[] arr2 = {new Object()};
+        if (arr1[0] == null) {} //@ALWAYS_TRUE
+        if (arr2[0] == null) {} //@ALWAYS_FALSE
+        g1(arr1);
+        if (arr1[0] == null) {} //ok
+        if (arr2[0] == null) {} //@ALWAYS_FALSE
     }
 }

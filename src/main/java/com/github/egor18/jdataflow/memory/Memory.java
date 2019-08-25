@@ -139,7 +139,7 @@ public class Memory
      */
     public void resetObject(CtTypeReference type, IntExpr address)
     {
-        // Reset fields
+        // Reset fields and array elements
         for (Map.Entry<CtReference, ArrayExpr> entry : memoryMap.entrySet())
         {
             CtReference reference = entry.getKey();
@@ -149,6 +149,16 @@ public class Memory
                 {
                     Sort sort = getTypeSort(context, ((CtFieldReference) reference).getType());
                     write(reference, address, context.mkFreshConst("", sort));
+                }
+            }
+            else if (reference instanceof CtArrayTypeReference)
+            {
+                if (reference.equals(type))
+                {
+                    ArrayExpr memoryArray = memoryMap.get(type);
+                    ArrayExpr oldArrayValue = (ArrayExpr) context.mkSelect(memoryArray, address);
+                    ArrayExpr newArrayValue = (ArrayExpr) context.mkFreshConst("", oldArrayValue.getSort());
+                    memoryMap.put(type, context.mkStore(memoryArray, address, newArrayValue));
                 }
             }
         }
