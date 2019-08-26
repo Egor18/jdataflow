@@ -1,4 +1,6 @@
 # jdataflow
+[![Build Status](https://travis-ci.com/Egor18/jdataflow.svg?branch=master)](https://travis-ci.com/Egor18/jdataflow)
+[![codecov](https://codecov.io/gh/Egor18/jdataflow/branch/master/graph/badge.svg)](https://codecov.io/gh/Egor18/jdataflow)
 
 jdataflow is a Z3 solver based data-flow analyzer for Java source code.
 
