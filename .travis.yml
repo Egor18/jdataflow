@@ -1,0 +1,33 @@
+language: java
+
+os: linux
+dist: xenial
+jdk: openjdk8
+
+# Prevent travis from running gradle assemble
+install:
+  - true
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+before_script:
+  - chmod +x gradlew
+
+script:
+  - wget https://github.com/Z3Prover/z3/releases/download/z3-4.8.4/z3-4.8.4.d6df51951f4c-x64-ubuntu-14.04.zip
+  - unzip z3-4.8.4.d6df51951f4c-x64-ubuntu-14.04.zip
+  - export LD_LIBRARY_PATH=./z3-4.8.4.d6df51951f4c-x64-ubuntu-14.04/bin
+  - ./gradlew build
+  - ./gradlew jacocoTestReport
+
+# Upload reports to Codecov
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
 }
 
 group 'com.github.egor18'
@@ -35,3 +36,12 @@ jar {
         attributes 'Class-Path': configurations.compile.collect { "libs/" + it.getName() }.join(' ')
     }
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+check.dependsOn jacocoTestReport
