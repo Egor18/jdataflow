@@ -131,5 +131,4 @@ Here are some useful links with a more detailed explanation of different memory 
 At the moment this project is just a proof of concept, so there is a lot of work to do:
 - Interprocedural analysis and Function Summaries;
 - Parallel analysis and classes dependency graph;
-- Support for the remaining language constructions;
 - Better loop analysis;
