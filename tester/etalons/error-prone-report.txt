@@ -1,0 +1,4 @@
+WARNING: Condition '(message == null)' is always true when reached (./projects/error-prone/core/src/main/java/com/google/errorprone/bugpatterns/CatchFail.java:132)
+WARNING: Condition 'keyShaped' is always true when reached (./projects/error-prone/core/src/main/java/com/google/errorprone/bugpatterns/HashtableContains.java:86)
+WARNING: Condition '(getSecondsReceiver != null)' is always true when reached (./projects/error-prone/core/src/main/java/com/google/errorprone/bugpatterns/time/JavaDurationGetSecondsGetNano.java:128)
+WARNING: Condition 'isGeneric' is always true when reached (./projects/error-prone/check_api/src/main/java/com/google/errorprone/VisitorState.java:433)

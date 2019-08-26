@@ -15,6 +15,119 @@ projects = {
         'exclude' : ['target/generated-sources'],
     },
 
+    'hikaricp' : {
+        'download' : ['git clone https://github.com/brettwooldridge/HikariCP.git hikaricp --depth 1 -b HikariCP-3.3.1'],
+        'build' : ['mvn install -DskipTests'],
+        'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+        'maven-generated-classpath' : True,
+        'exclude' : ['target/generated-sources'],
+    },
+
+    'nanohttpd' : {
+        'download' : ['git clone https://github.com/NanoHttpd/nanohttpd.git', 'cd nanohttpd && git checkout efb2ebf'],
+        'build' : ['mvn install -DskipTests'],
+        'core' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'webserver' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+    },
+
+    'error-prone' : {
+        'download' : ['git clone https://github.com/google/error-prone.git error-prone --depth 1 -b v2.3.3'],
+        'build' : ['mvn compile -DskipTests'],
+        'core' : {
+            'sources' : ['src/main/java', 'target/generated-sources/protobuf/java', 'target/generated-sources/protobuf/grpc-java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'annotation' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'annotations' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'check_api' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'docgen' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'docgen_processor' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'refaster' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'test_helpers' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+        'type_annotations' : {
+            'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+            'maven-generated-classpath' : True,
+            'exclude' : ['target/generated-sources'],
+        },
+    },
+
+    'checkstyle' : {
+        'download' : ['git clone https://github.com/checkstyle/checkstyle.git checkstyle --depth 1 -b checkstyle-8.23'],
+        'build' : ['mvn install -DskipTests'],
+        'sources' : ['src/main/java', 'target/generated-sources/antlr', 'target/generated-sources/annotations'],
+        'maven-generated-classpath' : True,
+        'exclude' : ['target/generated-sources'],
+    },
+
+    'cactoos' : {
+        'download' : ['git clone https://github.com/yegor256/cactoos.git --depth 1 -b 0.42'],
+        'build' : ['mvn install -DskipTests'],
+        'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+        'maven-generated-classpath' : True,
+        'exclude' : ['target/generated-sources'],
+    },
+
+    'takes' : {
+        'download' : ['git clone https://github.com/yegor256/takes.git --depth 1 -b 1.17'],
+        'build' : ['mvn install -DskipTests'],
+        'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+        'maven-generated-classpath' : True,
+        'exclude' : ['target/generated-sources'],
+    },
+
+    'jsoup' : {
+        'download' : ['git clone https://github.com/jhy/jsoup.git jsoup --depth 1 -b jsoup-1.12.1'],
+        'build' : ['mvn install -DskipTests'],
+        'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+        'maven-generated-classpath' : True,
+        'exclude' : ['target/generated-sources'],
+    },
+
+    'spark' : {
+        'download' : ['git clone https://github.com/perwendel/spark.git spark --depth 1 -b 2.9.1'],
+        'build' : ['mvn install -DskipTests'],
+        'sources' : ['src/main/java', 'target/generated-sources/annotations'],
+        'maven-generated-classpath' : True,
+        'exclude' : ['target/generated-sources'],
+    },
+
     'algorithms' : {
         'download' : ['git clone https://github.com/TheAlgorithms/Java.git algorithms', 'cd algorithms && git checkout d6fda6f'],
         'build' : [],
