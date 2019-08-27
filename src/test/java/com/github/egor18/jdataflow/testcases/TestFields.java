@@ -1,5 +1,7 @@
 package com.github.egor18.jdataflow.testcases;
 
+import com.github.egor18.jdataflow.resources.AnotherClass1;
+
 public class TestFields
 {
     private class C1 { int x; }
@@ -340,5 +342,12 @@ public class TestFields
                 if (CONST == null) {} //@ALWAYS_FALSE
             }
         };
+    }
+
+    void testConstantFromAnotherClass1()
+    {
+        if (AnotherClass1.CONST1 == 42) {} //@ALWAYS_TRUE
+        if (AnotherClass1.NON_CONST1 == 42) {} //ok
+        if (AnotherClass1.CONST2 == 30) {} //@ALWAYS_TRUE
     }
 }

@@ -1037,10 +1037,19 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
     }
 
+    private boolean isStaticField(CtTypeMember member)
+    {
+        return member.isStatic() && member instanceof CtField;
+    }
+
     @Override
     public <T> void visitCtClass(CtClass<T> ctClass)
     {
         System.out.println("Analyzing class: " + ctClass.getQualifiedName());
+        List<CtTypeMember> typeMembers = ctClass.getTypeMembers();
+
+        typeMembers.forEach(m -> {if (isStaticField(m)) { scan(m); }});
+
         int startNumScopes = solver.getNumScopes();
         solver.push();
         Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
@@ -1050,9 +1059,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         try
         {
             // Before visiting a class, we should visit all of its fields
-            List<CtTypeMember> typeMembers = ctClass.getTypeMembers();
-            typeMembers.forEach(m -> { if (m instanceof CtField) { scan(m); }});
-            typeMembers.forEach(m -> { if (!(m instanceof CtField)) { scan(m); }});
+            typeMembers.forEach(m -> {if (!isStaticField(m) && m instanceof CtField) { scan(m); }});
+            typeMembers.forEach(m -> {if (!isStaticField(m) && !(m instanceof CtField)) { scan(m); }});
         }
         catch (Exception e)
         {

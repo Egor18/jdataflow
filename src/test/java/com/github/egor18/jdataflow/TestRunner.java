@@ -52,6 +52,8 @@ public class TestRunner
         launcher.getEnvironment().setCommentEnabled(false);
         launcher.getEnvironment().setComplianceLevel(10);
         launcher.addInputResource(file.getAbsolutePath());
+        File resourcesDir = new File(file.getParentFile().getParentFile(), "resources");
+        launcher.addInputResource(resourcesDir.getAbsolutePath());
         CtModel model = launcher.buildModel();
 
         List<String> lines = Files.readAllLines(file.toPath(), Charset.defaultCharset());
