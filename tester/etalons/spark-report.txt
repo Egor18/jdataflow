@@ -1,0 +1,2 @@
+WARNING: Condition 'webSocketServletContextHandler != null' is always true when reached (./projects/spark/src/main/java/spark/embeddedserver/jetty/EmbeddedJettyServer.java:133)
+WARNING: Condition 'end > 0' is always false when reached (./projects/spark/src/main/java/spark/resource/UriPath.java:69)
