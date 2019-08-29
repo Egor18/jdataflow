@@ -1,6 +1,7 @@
 package com.github.egor18.jdataflow.testcases;
 
 import com.github.egor18.jdataflow.resources.AnotherClass1;
+import com.github.egor18.jdataflow.resources.AnotherClass2;
 
 public class TestFields
 {
@@ -344,10 +345,34 @@ public class TestFields
         };
     }
 
-    void testConstantFromAnotherClass1()
+    void testConstants1()
     {
         if (AnotherClass1.CONST1 == 42) {} //@ALWAYS_TRUE
         if (AnotherClass1.NON_CONST1 == 42) {} //ok
         if (AnotherClass1.CONST2 == 30) {} //@ALWAYS_TRUE
+    }
+
+    void testConstants2()
+    {
+        if (AnotherClass1.X == 10) {} //@ALWAYS_TRUE
+        if (AnotherClass2.X == 10) {} //@ALWAYS_TRUE
+        if (AnotherClass1.Y == 20) {} //@ALWAYS_TRUE
+        if (AnotherClass2.Y == 20) {} //@ALWAYS_TRUE
+    }
+
+    void testConstants3()
+    {
+        if (AnotherClass1.recursiveField1 == 0) {} //ok
+        if (AnotherClass1.recursiveField2 == 0) {} //ok
+        if (AnotherClass2.recursiveField1 == 0) {} //ok
+        if (AnotherClass2.recursiveField2 == 0) {} //ok
+        if (AnotherClass2.recursiveField3 == 0) {} //ok
+    }
+
+    void testConstants4()
+    {
+        if (AnotherClass1.Z == 42) {} //@ALWAYS_TRUE
+        if (AnotherClass1.W == 100) {} //@ALWAYS_TRUE
+        if (AnotherClass1.P != 100 && AnotherClass1.P != 200) {} //@ALWAYS_FALSE
     }
 }

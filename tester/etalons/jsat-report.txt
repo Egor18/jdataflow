@@ -9,6 +9,7 @@ WARNING: Condition 'newA' is always true when reached (./projects/jsat/JSAT/src/
 WARNING: Condition 'newB' is always true when reached (./projects/jsat/JSAT/src/jsat/linear/distancemetrics/PearsonDistance.java:217)
 WARNING: Condition 'primed = true' is always true when reached (./projects/jsat/JSAT/src/jsat/linear/vectorcollection/IndexNode.java:159)
 WARNING: Condition '(categories.length) != (categories.length)' is always false when reached (./projects/jsat/JSAT/src/jsat/regression/RegressionDataSet.java:168)
+WARNING: Condition '(extraInfo == (jsat.utils.IntDoubleMap.EXTRA_INDEX_INFO))' is always true when reached (./projects/jsat/JSAT/src/jsat/utils/IntDoubleMap.java:298)
 WARNING: Condition '(extraInfo == (jsat.utils.ClosedHashingUtil.EXTRA_INDEX_INFO))' is always true when reached (./projects/jsat/JSAT/src/jsat/utils/IntSet.java:131)
 WARNING: Condition 'has[e] = true' is always true when reached (./projects/jsat/JSAT/src/jsat/utils/IntSetFixedSize.java:72)
 WARNING: Condition '(extraInfo == (jsat.utils.ClosedHashingUtil.EXTRA_INDEX_INFO))' is always true when reached (./projects/jsat/JSAT/src/jsat/utils/LongDoubleMap.java:239)

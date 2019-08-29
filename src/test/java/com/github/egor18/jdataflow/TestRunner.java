@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.fail;
 
@@ -60,8 +61,9 @@ public class TestRunner
 
         CheckersScanner scanner = new CheckersScanner(launcher.getFactory(), false);
         model.getAllTypes().forEach(scanner::scan);
-        List<Warning> warnings = scanner.getWarnings();
-
+        List<Warning> warnings = scanner.getWarnings().stream()
+                                                      .filter(w -> w.position.getFile().getAbsolutePath().equals(file.getAbsolutePath()))
+                                                      .collect(Collectors.toList());
         for (Warning warn : warnings)
         {
             if (!lines.get(warn.position.getLine() - 1).contains("//@" + warn.kind.name()))

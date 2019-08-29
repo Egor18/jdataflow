@@ -16,6 +16,7 @@ import spoon.reflect.visitor.filter.AbstractFilter;
 import spoon.reflect.visitor.filter.TypeFilter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
 import static com.github.egor18.jdataflow.utils.PromotionUtils.*;
@@ -115,6 +116,21 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     public boolean isInsideLoopEntryCondition()
     {
         return isInsideLoopEntryCondition;
+    }
+
+    private void resetControlFlowFlags()
+    {
+        returnFlagReference = FlagReference.makeFreshReturnReference();
+        variablesMap.put(returnFlagReference, context.mkFalse());
+
+        breakFlagReference = FlagReference.makeFreshBreakReference();
+        variablesMap.put(breakFlagReference, context.mkFalse());
+
+        continueFlagReference = FlagReference.makeFreshContinueReference();
+        variablesMap.put(continueFlagReference, context.mkFalse());
+
+        throwFlagReference = FlagReference.makeFreshThrowReference();
+        variablesMap.put(throwFlagReference, context.mkFalse());
     }
 
     /**
@@ -1007,39 +1023,37 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtField(CtField<T> field)
     {
-        if (field.isFinal())
+        CtExpression<?> defaultExpression = field.getDefaultExpression();
+        if (defaultExpression != null)
         {
-            CtExpression<?> defaultExpression = field.getDefaultExpression();
-            if (defaultExpression != null)
+            scan(defaultExpression);
+            Expr defaultExpr = currentResult;
+            defaultExpr = applyCasts(defaultExpr, getActualType(defaultExpression), Collections.singletonList(field.getType()));
+
+            Expr index;
+            if (field.isStatic())
             {
-                scan(defaultExpression);
-                Expr defaultExpr = currentResult;
-                defaultExpr = applyCasts(defaultExpr, getActualType(defaultExpression), Collections.singletonList(field.getType()));
-
-                Expr index;
-                if (field.isStatic())
+                CtTypeReference<?> declaringType = field.getDeclaringType().getReference();
+                index = variablesMap.get(declaringType);
+                if (index == null)
                 {
-                    CtTypeReference<?> declaringType = field.getDeclaringType().getReference();
-                    index = variablesMap.get(declaringType);
-                    if (index == null)
-                    {
-                        index = makeFreshInt(context);
-                        variablesMap.put(declaringType, index);
-                    }
+                    index = makeFreshInt(context);
+                    variablesMap.put(declaringType, index);
                 }
-                else
-                {
-                    index = context.mkInt(Memory.thisPointer());
-                }
+            }
+            else
+            {
+                index = context.mkInt(Memory.thisPointer());
+            }
 
-                memory.write(field.getReference(), (IntExpr) index, defaultExpr);
+            memory.write(field.getReference(), (IntExpr) index, defaultExpr);
+
+            // Put the value of a static final field right into it
+            if (field.isStatic() && field.isFinal())
+            {
+                field.putMetadata("value", defaultExpr);
             }
         }
-    }
-
-    private boolean isStaticField(CtTypeMember member)
-    {
-        return member.isStatic() && member instanceof CtField;
     }
 
     @Override
@@ -1047,9 +1061,6 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         System.out.println("Analyzing class: " + ctClass.getQualifiedName());
         List<CtTypeMember> typeMembers = ctClass.getTypeMembers();
-
-        typeMembers.forEach(m -> {if (isStaticField(m)) { scan(m); }});
-
         int startNumScopes = solver.getNumScopes();
         solver.push();
         Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
@@ -1059,8 +1070,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         try
         {
             // Before visiting a class, we should visit all of its fields
-            typeMembers.forEach(m -> {if (!isStaticField(m) && m instanceof CtField) { scan(m); }});
-            typeMembers.forEach(m -> {if (!isStaticField(m) && !(m instanceof CtField)) { scan(m); }});
+            typeMembers.forEach(m -> {if (m instanceof CtField) { scan(m); }});
+            typeMembers.forEach(m -> {if (!(m instanceof CtField)) { scan(m); }});
         }
         catch (Exception e)
         {
@@ -1085,7 +1096,26 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public void visitCtAnonymousExecutable(CtAnonymousExecutable anonymousExec)
     {
-        visitMethod(anonymousExec.getBody(), anonymousExec.getParameters());
+        memory.resetMutable();
+        currentResult = null;
+        currentConditions = null;
+        resetControlFlowFlags();
+
+        scan(anonymousExec.getBody());
+
+        // Save values of static final fields initialized in this static block
+        if (anonymousExec.isStatic())
+        {
+            variablesMap.forEach((ref, value) ->
+            {
+                if (ref instanceof CtFieldReference
+                    && ((CtFieldReference) ref).isStatic()
+                    && ((CtFieldReference) ref).isFinal())
+                {
+                    ref.getDeclaration().putMetadata("value", value);
+                }
+            });
+        }
     }
 
     private void visitMethod(CtElement body, List<CtParameter<?>> parameters)
@@ -1094,26 +1124,15 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         solver.push();
         Map<CtReference, Expr> oldValues = new HashMap<>(variablesMap);
         Memory oldMemory = new Memory(memory);
+        memory.resetMutable();
         BoolExpr oldConditions = currentConditions;
         CtReference oldReturnFlagReference = returnFlagReference;
         CtReference oldBreakFlagReference = breakFlagReference;
         CtReference oldContinueFlagReference = continueFlagReference;
         CtReference oldThrowFlagReference = throwFlagReference;
-
         currentResult = null;
         currentConditions = null;
-
-        returnFlagReference = FlagReference.makeFreshReturnReference();
-        variablesMap.put(returnFlagReference, context.mkFalse());
-
-        breakFlagReference = FlagReference.makeFreshBreakReference();
-        variablesMap.put(breakFlagReference, context.mkFalse());
-
-        continueFlagReference = FlagReference.makeFreshContinueReference();
-        variablesMap.put(continueFlagReference, context.mkFalse());
-
-        throwFlagReference = FlagReference.makeFreshThrowReference();
-        variablesMap.put(throwFlagReference, context.mkFalse());
+        resetControlFlowFlags();
 
         for (CtParameter<?> parameter : parameters)
         {
@@ -1126,7 +1145,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
         catch (Exception e)
         {
-            System.out.println("Failed to analyze method " + body.getParent(CtMethod.class).getSimpleName() + ":");
+            System.out.println("Failed to analyze method " + body.getParent(CtExecutable.class).getSimpleName() + ":");
             if (failsafe)
             {
                 e.printStackTrace();
@@ -1393,6 +1412,48 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         superAccess.putMetadata("value", currentResult);
     }
 
+    private Deque<CtFieldReference> fieldsCallStack = new ArrayDeque<>();
+
+    private Expr getFinalStaticFieldExpr(CtFieldReference finalFieldReference, IntExpr targetExpr)
+    {
+        if (!finalFieldReference.isFinal() || !finalFieldReference.isStatic())
+        {
+            throw new RuntimeException("The field should be final and static");
+        }
+
+        // Handle mutually recursive fields
+        if (fieldsCallStack.contains(finalFieldReference))
+        {
+            return memory.read(finalFieldReference, targetExpr);
+        }
+
+        if (finalFieldReference.getDeclaration().getMetadata("value") == null)
+        {
+            if (finalFieldReference.getDeclaration().getDefaultExpression() != null)
+            {
+                fieldsCallStack.push(finalFieldReference);
+                scan(finalFieldReference.getDeclaration());
+                fieldsCallStack.pop();
+            }
+            else
+            {
+                List<CtAnonymousExecutable> staticBlocks = finalFieldReference.getDeclaringType()
+                                                                              .getDeclaration()
+                                                                              .getElements(new TypeFilter<>(CtAnonymousExecutable.class))
+                                                                              .stream()
+                                                                              .filter(CtModifiable::isStatic)
+                                                                              .collect(Collectors.toList());
+                fieldsCallStack.push(finalFieldReference);
+                staticBlocks.forEach(this::scan);
+                fieldsCallStack.pop();
+            }
+
+            return memory.read(finalFieldReference, targetExpr);
+        }
+
+        return (Expr) finalFieldReference.getDeclaration().getMetadata("value");
+    }
+
     @Override
     public <T> void visitCtFieldRead(CtFieldRead<T> fieldRead)
     {
@@ -1411,7 +1472,18 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         targetExpr = getTargetValue(context, variablesMap, memory, target);
 
-        currentResult = memory.read(fieldRead.getVariable(), targetExpr);
+        if (isCalculable(fieldRead.getType())
+            && fieldRead.getVariable().isStatic()
+            && fieldRead.getVariable().isFinal()
+            && fieldRead.getVariable().getDeclaration() != null)
+        {
+            currentResult = getFinalStaticFieldExpr(fieldRead.getVariable(), targetExpr);
+        }
+        else
+        {
+            currentResult = memory.read(fieldRead.getVariable(), targetExpr);
+        }
+
         currentResult = applyCasts(currentResult, fieldRead.getType(), fieldRead.getTypeCasts());
         fieldRead.putMetadata("value", currentResult);
         checkFieldRead(fieldRead);
