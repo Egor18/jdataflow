@@ -206,7 +206,7 @@ public class TestInvocation
         p.x = 1;
         m.f();
         if (p.x == 1) {} //FIXME: should be always true here
-        // Explanation: Right we assume that m could point to any memory address (including local variable p)
+        // Explanation: Right here we assume that m could point to any memory address (including local variable p)
     }
 
     void testIndirectModification11()

@@ -1,5 +1,6 @@
 package com.github.egor18.jdataflow.scanners;
 
+import com.github.egor18.jdataflow.Configuration;
 import com.github.egor18.jdataflow.checkers.AbstractChecker;
 import com.github.egor18.jdataflow.checkers.AlwaysTrueFalseChecker;
 import com.github.egor18.jdataflow.checkers.NullDereferenceChecker;
@@ -28,9 +29,9 @@ public class CheckersScanner extends DataFlowScanner
         warnings.add(warning);
     }
 
-    public CheckersScanner(Factory factory, boolean failsafe)
+    public CheckersScanner(Factory factory, Configuration config)
     {
-        super(factory, failsafe);
+        super(factory, config);
         checkers.add(new AlwaysTrueFalseChecker(this));
         checkers.add(new NullDereferenceChecker(this));
     }

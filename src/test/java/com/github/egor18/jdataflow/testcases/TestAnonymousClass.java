@@ -4,10 +4,7 @@ public class TestAnonymousClass
 {
     public class C
     {
-        public int f()
-        {
-            return 0;
-        }
+        public native int f();
     }
 
     int y;

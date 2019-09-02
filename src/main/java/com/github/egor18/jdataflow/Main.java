@@ -77,33 +77,6 @@ public class Main
         return classpathString.trim().split(File.pathSeparator);
     }
 
-    private static boolean isSubElement(File file, String[] elements)
-    {
-        if (file == null || elements == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            String filePath = file.getCanonicalPath();
-            for (String element : elements)
-            {
-                String elementPath = new File(element).getCanonicalPath();
-                if (filePath.startsWith(elementPath))
-                {
-                    return true;
-                }
-            }
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-
-        return false;
-    }
-
     public static void main(String[] args) throws IOException
     {
         Options options = createCommandLineOptions();
@@ -124,27 +97,28 @@ public class Main
             return;
         }
 
-        String[] sources = cmd.getOptionValues("s");
-        String classpath = cmd.getOptionValue("cp");
-        String classpathFile = cmd.getOptionValue("cf");
-        String outputFile = cmd.getOptionValue("o");
-        String[] excludes = cmd.getOptionValues("e");
-        String[] includes = cmd.getOptionValues("i");
-        String relativizer = cmd.getOptionValue("r");
-        boolean noFailsafe = cmd.hasOption("no-failsafe");
+        Configuration config = new Configuration();
+        config.setSources(cmd.getOptionValues("s"));
+        config.setClasspath(cmd.getOptionValue("cp"));
+        config.setClasspathFile(cmd.getOptionValue("cf"));
+        config.setOutputFile(cmd.getOptionValue("o"));
+        config.setExcludes(cmd.getOptionValues("e"));
+        config.setIncludes(cmd.getOptionValues("i"));
+        config.setRelativizer(cmd.getOptionValue("r"));
+        config.setNoFailsafe(cmd.hasOption("no-failsafe"));
 
         Launcher launcher = new Launcher();
         //launcher.getEnvironment().setNoClasspath(false);
         launcher.getEnvironment().setCommentEnabled(false);
         launcher.getEnvironment().setComplianceLevel(10);
-        Arrays.stream(sources).forEach(launcher::addInputResource);
-        if (classpath != null)
+        Arrays.stream(config.getSources()).forEach(launcher::addInputResource);
+        if (config.getClasspath() != null)
         {
-            launcher.getEnvironment().setSourceClasspath(parseClasspath(classpath));
+            launcher.getEnvironment().setSourceClasspath(parseClasspath(config.getClasspath()));
         }
-        else if (classpathFile != null)
+        else if (config.getClasspathFile() != null)
         {
-            FileInputStream fisTargetFile = new FileInputStream(new File(classpathFile));
+            FileInputStream fisTargetFile = new FileInputStream(new File(config.getClasspathFile()));
             String content = IOUtils.toString(fisTargetFile, Charset.defaultCharset()).trim();
             if (!content.isEmpty())
             {
@@ -155,21 +129,20 @@ public class Main
         System.out.println("Building model");
         CtModel ctModel = launcher.buildModel();
 
-        CheckersScanner scanner = new CheckersScanner(launcher.getFactory(), !noFailsafe);
+        CheckersScanner scanner = new CheckersScanner(launcher.getFactory(), config);
 
         ctModel.getAllTypes().stream()
-                             .filter(t -> !isSubElement(t.getPosition().getFile(), excludes)
-                                          || isSubElement(t.getPosition().getFile(), includes))
+                             .filter(t -> !config.isInExcludedFile(t))
                              .forEach(scanner::scan);
 
-        if (relativizer != null)
+        if (config.getRelativizer() != null)
         {
-            scanner.getWarnings().forEach(w -> w.relativizer = relativizer);
+            scanner.getWarnings().forEach(w -> w.relativizer = config.getRelativizer());
         }
 
-        if (outputFile != null)
+        if (config.getOutputFile() != null)
         {
-            PrintWriter printWriter = new PrintWriter(new FileWriter(outputFile));
+            PrintWriter printWriter = new PrintWriter(new FileWriter(config.getOutputFile()));
             scanner.getWarnings().forEach(w -> printWriter.println("WARNING: " + w));
             printWriter.close();
         }

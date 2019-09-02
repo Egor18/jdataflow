@@ -1,9 +1,13 @@
 package com.github.egor18.jdataflow.scanners;
 
+import com.github.egor18.jdataflow.Configuration;
 import com.github.egor18.jdataflow.memory.Memory;
 import com.github.egor18.jdataflow.misc.BranchData;
 import com.github.egor18.jdataflow.misc.ConditionStatus;
 import com.github.egor18.jdataflow.misc.FlagReference;
+import com.github.egor18.jdataflow.summaries.interfaces.EffectFunction;
+import com.github.egor18.jdataflow.summaries.FunctionSummary;
+import com.github.egor18.jdataflow.summaries.ManualSummaries;
 import com.github.egor18.jdataflow.utils.TypeUtils;
 import com.microsoft.z3.*;
 import spoon.reflect.code.*;
@@ -20,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
 import static com.github.egor18.jdataflow.utils.PromotionUtils.*;
+import static com.github.egor18.jdataflow.utils.SummaryUtils.getFullSignature;
 import static com.github.egor18.jdataflow.utils.TypeUtils.*;
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
 import static com.github.egor18.jdataflow.utils.TypeUtils.isCalculable;
@@ -39,8 +44,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Maps variable reference to the latest corresponding value
     private Map<CtReference, Expr> variablesMap = new HashMap<>();
 
-    // Stack of indirect modifications (i.e. within inner classes and lambdas) of current methods
-    private Stack<List<CtElement>> currentMethodsIndirectModifications = new Stack<>();
+    // Indirect modifications (i.e. within inner classes and lambdas) of a current method
+    private List<CtElement> currentMethodIndirectModifications = new ArrayList<>();
 
     // z3 solver context
     private Context context;
@@ -50,9 +55,6 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     // Memory model
     private Memory memory;
-
-    // Whether to terminate analysis immediately on any error or not
-    private boolean failsafe;
 
     // Abrupt termination flags references
     private CtReference returnFlagReference;
@@ -69,33 +71,69 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Whether the scanner is inside loop entry condition
     private boolean isInsideLoopEntryCondition = false;
 
-    public DataFlowScanner(Factory factory, boolean failsafe)
+    // Table that contains all function summaries (both manual and deduced)
+    private Map<String, FunctionSummary> functionSummariesTable;
+
+    // Current function summary
+    private FunctionSummary currentFunctionSummary;
+
+    // This stack is used during interprocedural analysis in order not to get stuck inside (mutually) recursive functions
+    private Deque<String> functionsCallStack = new ArrayDeque<>();
+
+    // This stack is used when analyzing final fields in order not to get stuck inside (mutually) recursive fields
+    private Deque<CtFieldReference> fieldsCallStack = new ArrayDeque<>();
+
+    // Analyzer configuration
+    private Configuration config;
+
+    public DataFlowScanner(Factory factory, Configuration config)
     {
         this.factory = factory;
         this.context = new Context();
         this.solver = context.mkSolver();
         this.memory = new Memory(context);
-        this.failsafe = failsafe;
+        this.config = config;
+        this.functionSummariesTable = new ManualSummaries(this).getTable();
     }
 
-    private BoolExpr getReturnExpr()
+    public BoolExpr getReturnExpr()
     {
         return (BoolExpr) variablesMap.get(returnFlagReference);
     }
 
-    private BoolExpr getBreakExpr()
+    public BoolExpr getBreakExpr()
     {
         return (BoolExpr) variablesMap.get(breakFlagReference);
     }
 
-    private BoolExpr getContinueExpr()
+    public BoolExpr getContinueExpr()
     {
         return (BoolExpr) variablesMap.get(continueFlagReference);
     }
 
-    private BoolExpr getThrowExpr()
+    public BoolExpr getThrowExpr()
     {
         return (BoolExpr) variablesMap.get(throwFlagReference);
+    }
+
+    public void setReturnExpr(BoolExpr value)
+    {
+        variablesMap.put(returnFlagReference, value);
+    }
+
+    public void setBreakExpr(BoolExpr value)
+    {
+        variablesMap.put(breakFlagReference, value);
+    }
+
+    public void setContinueExpr(BoolExpr value)
+    {
+        variablesMap.put(continueFlagReference, value);
+    }
+
+    public void setThrowExpr(BoolExpr value)
+    {
+        variablesMap.put(throwFlagReference, value);
     }
 
     public Context getContext()
@@ -382,6 +420,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         solver.pop();
         return result;
+    }
+
+    private void visitImpure()
+    {
+        if (currentFunctionSummary != null)
+        {
+            currentFunctionSummary.setPure(false);
+        }
     }
 
     @Override
@@ -782,20 +828,30 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public void visitCtBreak(CtBreak breakStatement)
     {
-        variablesMap.put(breakFlagReference, context.mkTrue());
+        setBreakExpr(context.mkTrue());
     }
 
     @Override
     public void visitCtContinue(CtContinue continueStatement)
     {
-        variablesMap.put(continueFlagReference, context.mkTrue());
+        setContinueExpr(context.mkTrue());
     }
 
     @Override
     public void visitCtThrow(CtThrow throwStatement)
     {
         scan(throwStatement.getThrownExpression());
-        variablesMap.put(throwFlagReference, context.mkTrue());
+        setThrowExpr(context.mkTrue());
+        visitImpure();
+
+        if (currentFunctionSummary != null)
+        {
+            // Test code (more complex effects will be deduced in the future)
+            if (currentConditions == null && getReturnExpr().isFalse())
+            {
+                currentFunctionSummary.addEffect((target, args) -> { setThrowExpr(context.mkTrue()); });
+            }
+        }
     }
 
     @Override
@@ -826,6 +882,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         IntExpr constructorCallValue = context.mkInt(nextPointer);
         currentResult = applyCasts(constructorCallValue, constructorCall.getType(), constructorCall.getTypeCasts());
         constructorCall.putMetadata("value", currentResult);
+        visitImpure();
     }
 
     @Override
@@ -887,7 +944,41 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtInvocation(CtInvocation<T> invocation)
     {
-        // Reset arguments
+        CtExecutableReference<T> executable = invocation.getExecutable();
+        CtExecutable<T> executableDeclaration;
+        try
+        {
+            executableDeclaration = executable.getDeclaration();
+        }
+        catch (Exception e)
+        {
+            executableDeclaration = null;
+        }
+
+        String signature = getFullSignature(executable);
+
+        if (executableDeclaration != null && !config.isInExcludedFile(executableDeclaration))
+        {
+            if (executableDeclaration instanceof CtMethod)
+            {
+                CtMethod<T> method = (CtMethod<T>) executableDeclaration;
+                if (functionSummariesTable.get(signature) == null)
+                {
+                    if (isInterproceduralPossible(method) && !functionsCallStack.contains(signature))
+                    {
+                        scan(method);
+                    }
+                }
+            }
+        }
+
+        FunctionSummary summary = functionSummariesTable.get(signature);
+
+        if (summary == null || !summary.isPure())
+        {
+            visitImpure();
+        }
+
         List<CtExpression<?>> arguments = invocation.getArguments();
         for (CtExpression<?> argument : arguments)
         {
@@ -896,14 +987,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             if (argumentExpr != null)
             {
                 CtTypeReference<?> argumentType = getActualType(argument);
-                if (!argumentType.isPrimitive() && !isImmutable(argumentType))
+                if (!argumentType.isPrimitive() && !isImmutable(argumentType) && (summary == null || !summary.isPure()))
                 {
                     memory.resetObject(argumentType, (IntExpr) argumentExpr);
                 }
             }
         }
 
-        // Reset target
         CtExpression<?> target = invocation.getTarget();
         Expr targetExpr = null;
         boolean dereferenceTarget = false;
@@ -917,7 +1007,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 if (!(target instanceof CtTypeAccess))
                 {
                     dereferenceTarget = true;
-                    if (!isImmutable(targetType))
+                    if (!isImmutable(targetType) && (summary == null || !summary.isPure()))
                     {
                         memory.resetObject(targetType, (IntExpr) targetExpr);
                     }
@@ -925,23 +1015,21 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
-        // Reset this
-        IntNum thisExpr = context.mkInt(Memory.thisPointer());
-        CtTypeReference thisType = invocation.getParent(CtType.class).getReference();
-        memory.resetObject(thisType, thisExpr);
-
-        // Reset super
-        CtTypeReference superType = thisType.getSuperclass();
-        if (superType != null)
+        if (summary == null || !summary.isPure())
         {
-            memory.resetObject(superType, thisExpr);
-        }
+            IntNum thisExpr = context.mkInt(Memory.thisPointer());
+            CtTypeReference thisType = invocation.getParent(CtType.class).getReference();
+            memory.resetObject(thisType, thisExpr);
 
-        // Reset all variables that could be possibly modified indirectly
-        if (!currentMethodsIndirectModifications.isEmpty())
-        {
+            CtTypeReference superType = thisType.getSuperclass();
+            if (superType != null)
+            {
+                memory.resetObject(superType, thisExpr);
+            }
+
+            // Reset all variables that could be possibly modified indirectly
             ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
-            for (CtElement indirectModification : currentMethodsIndirectModifications.peek())
+            for (CtElement indirectModification : currentMethodIndirectModifications)
             {
                 // If the indirect modification occurs after the invocation, it could not yet affect variables
                 SourcePosition modificationPosition = indirectModification.getPosition();
@@ -956,11 +1044,58 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
+        List<CtTypeReference<?>> formalParameters = invocation.getExecutable().getParameters();
+        boolean isEllipsis = arguments.size() != formalParameters.size();
+
+        List<Expr> argsExprs = new ArrayList<>();
+        if (summary != null && !isEllipsis) // TODO: handle ellipsis properly
+        {
+            for (int i = 0; i < arguments.size(); i++)
+            {
+                CtExpression<?> argument = arguments.get(i);
+                CtTypeReference<?> argActualType = getActualType(argument);
+                CtTypeReference<?> argFormalType = formalParameters.get(i);
+                Expr argExpr = (Expr) argument.getMetadata("value");
+                argExpr = applyCasts(argExpr, argActualType, Collections.singletonList(argFormalType));
+                argsExprs.add(argExpr);
+            }
+
+            for (EffectFunction effect : summary.getEffects())
+            {
+                effect.apply(targetExpr, argsExprs.toArray(new Expr[0]));
+            }
+        }
+
         CtTypeReference<?> returnType = invocation.getType();
         if (!isVoid(returnType))
         {
-            // In the most general case the return value of a function is unknown
-            Expr returnValue = makeFreshConstFromType(context, returnType);
+            Expr returnValue;
+            if (summary != null && !isEllipsis) // TODO: handle ellipsis properly
+            {
+                if (summary.getReturnFunc() != null)
+                {
+                    returnValue = summary.getReturnFunc().apply(targetExpr, argsExprs.toArray(new Expr[0]));
+                }
+                else if (summary.getSymbolicReturn() != null)
+                {
+                    List<Expr> actualArgs = new ArrayList<>();
+                    if (!executable.isStatic())
+                    {
+                        actualArgs.add(targetExpr);
+                    }
+                    actualArgs.addAll(argsExprs);
+                    returnValue = summary.getSymbolicReturn().apply(actualArgs.toArray(new Expr[0]));
+                }
+                else
+                {
+                    returnValue = makeFreshConstFromType(context, returnType);
+                }
+            }
+            else
+            {
+                returnValue = makeFreshConstFromType(context, returnType);
+            }
+
             currentResult = applyCasts(returnValue, returnType, invocation.getTypeCasts());
             invocation.putMetadata("value", currentResult);
         }
@@ -982,6 +1117,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         memory.resetObject(thisType, thisExpr);
         scan(synchro.getExpression());
         scan(synchro.getBlock());
+        visitImpure();
     }
 
     @Override
@@ -995,7 +1131,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             checkReturnedExpression(returnedExpression);
         }
 
-        variablesMap.put(returnFlagReference, context.mkTrue());
+        setReturnExpr(context.mkTrue());
     }
 
     @Override
@@ -1076,13 +1212,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         catch (Exception e)
         {
             System.out.println("Failed to analyze class " + ctClass.getQualifiedName() + ":");
-            if (failsafe)
+            if (config.isNoFailsafe())
             {
-                e.printStackTrace();
+                throw e;
             }
             else
             {
-                throw e;
+                e.printStackTrace();
             }
         }
         finally
@@ -1146,13 +1282,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         catch (Exception e)
         {
             System.out.println("Failed to analyze method " + body.getParent(CtExecutable.class).getSimpleName() + ":");
-            if (failsafe)
+            if (config.isNoFailsafe())
             {
-                e.printStackTrace();
+                throw e;
             }
             else
             {
-                throw e;
+                e.printStackTrace();
             }
         }
         finally
@@ -1201,13 +1337,59 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         return indirectModifications;
     }
 
+    private boolean isInterproceduralPossible(CtMethod<?> method)
+    {
+        return method.isFinal() || method.isStatic() || method.isPrivate();
+    }
+
     @Override
     public <T> void visitCtMethod(CtMethod<T> method)
     {
+        String signature = getFullSignature(method.getReference());
+        FunctionSummary summary = functionSummariesTable.get(signature);
+        boolean alreadyVisited = summary != null && !summary.isManual();
+        if (alreadyVisited)
+        {
+            return;
+        }
         System.out.println("Analyzing method: " + method.getSimpleName());
-        currentMethodsIndirectModifications.push(collectIndirectModifications(method));
+        List<CtElement> previousMethodIndirectModifications = currentMethodIndirectModifications;
+        currentMethodIndirectModifications = collectIndirectModifications(method);
+        FunctionSummary previousFunctionSummary = currentFunctionSummary;
+        currentFunctionSummary = new FunctionSummary();
+        currentFunctionSummary.setPure(true);
+        if (method.getBody() == null) // native, abstract, etc.
+        {
+            visitImpure();
+        }
+        functionsCallStack.push(signature);
+
         visitMethod(method.getBody(), method.getParameters());
-        currentMethodsIndirectModifications.pop();
+
+        CtTypeReference<?> returnType = method.getType();
+        if (!isVoid(returnType)
+            && currentFunctionSummary.isPure()
+            && currentFunctionSummary.getReturnFunc() == null
+            && !currentFunctionSummary.isManual())
+        {
+            List<Sort> argsSorts = new ArrayList<>();
+            if (!method.isStatic())
+            {
+                Sort targetSort = context.getIntSort();
+                argsSorts.add(targetSort);
+            }
+            argsSorts.addAll(method.getParameters().stream().map(p -> getTypeSort(context, p.getType())).collect(Collectors.toList()));
+            Sort returnSort = getTypeSort(context, method.getType());
+            currentFunctionSummary.setSymbolicReturn(context.mkFreshFuncDecl("", argsSorts.toArray(new Sort[0]), returnSort));
+        }
+
+        if (isInterproceduralPossible(method))
+        {
+            functionSummariesTable.put(signature, currentFunctionSummary);
+        }
+        currentFunctionSummary = previousFunctionSummary;
+        currentMethodIndirectModifications = previousMethodIndirectModifications;
+        functionsCallStack.pop();
     }
 
     @Override
@@ -1262,6 +1444,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         {
             // Update memory
             memory.write(leftReference, (IntExpr) leftValue, rightValue);
+            visitImpure();
         }
 
         if (left instanceof CtArrayWrite)
@@ -1327,7 +1510,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         Expr leftData = leftValue;
         if (left instanceof CtFieldWrite)
         {
-             leftData = memory.read(((CtFieldWrite<T>) left).getVariable(), (IntExpr) leftValue);
+            leftData = memory.read(((CtFieldWrite<T>) left).getVariable(), (IntExpr) leftValue);
+            visitImpure();
         }
 
         if (left instanceof CtArrayWrite)
@@ -1412,8 +1596,6 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         superAccess.putMetadata("value", currentResult);
     }
 
-    private Deque<CtFieldReference> fieldsCallStack = new ArrayDeque<>();
-
     private Expr getFinalStaticFieldExpr(CtFieldReference finalFieldReference, IntExpr targetExpr)
     {
         if (!finalFieldReference.isFinal() || !finalFieldReference.isStatic())
@@ -1421,18 +1603,24 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             throw new RuntimeException("The field should be final and static");
         }
 
-        // Handle mutually recursive fields
+        // Handle (mutually) recursive fields
         if (fieldsCallStack.contains(finalFieldReference))
         {
             return memory.read(finalFieldReference, targetExpr);
         }
 
-        if (finalFieldReference.getDeclaration().getMetadata("value") == null)
+        CtField fieldDeclaration = finalFieldReference.getDeclaration();
+        if (fieldDeclaration == null || config.isInExcludedFile(fieldDeclaration))
         {
-            if (finalFieldReference.getDeclaration().getDefaultExpression() != null)
+            return memory.read(finalFieldReference, targetExpr);
+        }
+
+        if (fieldDeclaration.getMetadata("value") == null)
+        {
+            if (fieldDeclaration.getDefaultExpression() != null)
             {
                 fieldsCallStack.push(finalFieldReference);
-                scan(finalFieldReference.getDeclaration());
+                scan(fieldDeclaration);
                 fieldsCallStack.pop();
             }
             else
@@ -1451,7 +1639,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             return memory.read(finalFieldReference, targetExpr);
         }
 
-        return (Expr) finalFieldReference.getDeclaration().getMetadata("value");
+        return (Expr) fieldDeclaration.getMetadata("value");
     }
 
     @Override
@@ -1482,6 +1670,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         else
         {
             currentResult = memory.read(fieldRead.getVariable(), targetExpr);
+            visitImpure();
         }
 
         currentResult = applyCasts(currentResult, fieldRead.getType(), fieldRead.getTypeCasts());
@@ -1498,6 +1687,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         fieldWrite.putMetadata("value", currentResult);
         checkFieldWrite(fieldWrite);
         visitDereference(currentResult);
+        visitImpure();
     }
 
     @Override
@@ -1535,6 +1725,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         arrayWrite.putMetadata("value", currentResult);
         checkArrayWrite(arrayWrite);
         visitDereference(currentResult);
+        visitImpure();
     }
 
     /**
