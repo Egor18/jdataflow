@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import shutil
+import time
 
 projects = {
 
@@ -452,12 +453,19 @@ class Project:
 
 def prepare_dirs():
     os.makedirs(projects_dir, exist_ok=True)
+    time.sleep(0.15)
     shutil.rmtree(outputs_dir, ignore_errors=True)
+    time.sleep(0.15)
     os.makedirs(outputs_dir)
+    time.sleep(0.15)
     shutil.rmtree(reports_dir, ignore_errors=True)
+    time.sleep(0.15)
     os.makedirs(reports_dir)
+    time.sleep(0.15)
     shutil.rmtree(diffs_dir, ignore_errors=True)
+    time.sleep(0.15)
     os.makedirs(diffs_dir)
+    time.sleep(0.15)
 
 def run(selected_projects):
     prepare_dirs()
