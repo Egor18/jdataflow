@@ -81,6 +81,15 @@ public class TestInterprocedural
         }
     }
 
+    void throwException2(boolean cond)
+    {
+        if (cond)
+        {
+            return;
+        }
+        throw new RuntimeException("Exception");
+    }
+
     void testThrow1(boolean x)
     {
         if (x)
@@ -103,6 +112,15 @@ public class TestInterprocedural
     {
         throwException();
         if (cond) {} //TODO: warn about unreachable code (new checker)
+    }
+
+    void testThrow4(boolean cond, boolean x)
+    {
+        if (x)
+        {
+            throwException(cond);
+        }
+        if (x) {} //ok
     }
 
     private int r1(int depth)
