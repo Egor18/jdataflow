@@ -101,7 +101,7 @@ public class Main
         config.setExcludes(cmd.getOptionValues("e"));
         config.setIncludes(cmd.getOptionValues("i"));
         config.setRelativizer(cmd.getOptionValue("r"));
-        config.setConfigFile(cmd.getOptionValue("с"));
+        config.setConfigFile(cmd.getOptionValue("c"));
         config.setNoFailsafe(cmd.hasOption("no-failsafe"));
         return config;
     }
