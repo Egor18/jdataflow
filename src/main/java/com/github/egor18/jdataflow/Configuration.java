@@ -1,5 +1,6 @@
 package com.github.egor18.jdataflow;
 
+import com.google.gson.annotations.SerializedName;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.cu.position.NoSourcePosition;
 import spoon.reflect.declaration.CtElement;
@@ -9,14 +10,31 @@ import java.io.IOException;
 
 public class Configuration
 {
+    @SerializedName("sources")
     private String[] sources;
+
+    @SerializedName("classpath")
     private String classpath;
+
+    @SerializedName("classpath-file")
     private String classpathFile;
-    private String outputFile;
+
+    @SerializedName("output")
+    private String output;
+
+    @SerializedName("excludes")
     private String[] excludes;
+
+    @SerializedName("includes")
     private String[] includes;
+
+    @SerializedName("relativizer")
     private String relativizer;
+
+    @SerializedName("no-failsafe")
     private boolean noFailsafe;
+
+    private transient String configFile;
 
     public String[] getSources()
     {
@@ -48,14 +66,14 @@ public class Configuration
         this.classpathFile = classpathFile;
     }
 
-    public String getOutputFile()
+    public String getOutput()
     {
-        return outputFile;
+        return output;
     }
 
-    public void setOutputFile(String outputFile)
+    public void setOutput(String output)
     {
-        this.outputFile = outputFile;
+        this.output = output;
     }
 
     public String[] getExcludes()
@@ -134,5 +152,15 @@ public class Configuration
         }
 
         return isSubElement(position.getFile(), excludes) && !isSubElement(position.getFile(), includes);
+    }
+
+    public String getConfigFile()
+    {
+        return configFile;
+    }
+
+    public void setConfigFile(String configFile)
+    {
+        this.configFile = configFile;
     }
 }

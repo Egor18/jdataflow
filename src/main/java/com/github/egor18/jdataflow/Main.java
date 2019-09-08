@@ -1,6 +1,9 @@
 package com.github.egor18.jdataflow;
 
 import com.github.egor18.jdataflow.scanners.CheckersScanner;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import spoon.Launcher;
@@ -18,7 +21,7 @@ public class Main
 
         Option sourcesOption = new Option("s", "Input sources");
         sourcesOption.setLongOpt("sources");
-        sourcesOption.setRequired(true);
+        sourcesOption.setRequired(false);
         sourcesOption.setArgName("args...");
         sourcesOption.setArgs(Option.UNLIMITED_VALUES);
         options.addOption(sourcesOption);
@@ -65,11 +68,42 @@ public class Main
         relativizeOption.setArgs(1);
         options.addOption(relativizeOption);
 
+        Option configFileOption = new Option("c", "Configuration json file");
+        configFileOption.setLongOpt("config-file");
+        configFileOption.setRequired(false);
+        configFileOption.setArgName("arg");
+        configFileOption.setArgs(1);
+        options.addOption(configFileOption);
+
         Option noFailsafeOption = new Option(null, "no-failsafe", false, "Terminate analysis immediately on any internal error");
         noFailsafeOption.setRequired(false);
         options.addOption(noFailsafeOption);
 
         return options;
+    }
+
+    private static Configuration getConfigFromJson(String configFile) throws IOException
+    {
+        try (JsonReader reader = new JsonReader(new FileReader(configFile)))
+        {
+            Gson gson = new GsonBuilder().setLenient().create();
+            return gson.fromJson(reader, Configuration.class);
+        }
+    }
+
+    private static Configuration getConfigFromCli(CommandLine cmd)
+    {
+        Configuration config = new Configuration();
+        config.setSources(cmd.getOptionValues("s"));
+        config.setClasspath(cmd.getOptionValue("cp"));
+        config.setClasspathFile(cmd.getOptionValue("cf"));
+        config.setOutput(cmd.getOptionValue("o"));
+        config.setExcludes(cmd.getOptionValues("e"));
+        config.setIncludes(cmd.getOptionValues("i"));
+        config.setRelativizer(cmd.getOptionValue("r"));
+        config.setConfigFile(cmd.getOptionValue("с"));
+        config.setNoFailsafe(cmd.hasOption("no-failsafe"));
+        return config;
     }
 
     private static String[] parseClasspath(String classpathString)
@@ -86,6 +120,10 @@ public class Main
         {
             CommandLineParser parser = new DefaultParser();
             cmd = parser.parse(options, args);
+            if (cmd.getOptionValue("s") == null && cmd.getOptionValue("c") == null)
+            {
+                throw new ParseException("Missing required option: s or c");
+            }
         }
         catch (ParseException e)
         {
@@ -97,15 +135,8 @@ public class Main
             return;
         }
 
-        Configuration config = new Configuration();
-        config.setSources(cmd.getOptionValues("s"));
-        config.setClasspath(cmd.getOptionValue("cp"));
-        config.setClasspathFile(cmd.getOptionValue("cf"));
-        config.setOutputFile(cmd.getOptionValue("o"));
-        config.setExcludes(cmd.getOptionValues("e"));
-        config.setIncludes(cmd.getOptionValues("i"));
-        config.setRelativizer(cmd.getOptionValue("r"));
-        config.setNoFailsafe(cmd.hasOption("no-failsafe"));
+        String configFile = cmd.getOptionValue("c");
+        Configuration config = configFile != null ? getConfigFromJson(configFile) : getConfigFromCli(cmd);
 
         Launcher launcher = new Launcher();
         //launcher.getEnvironment().setNoClasspath(false);
@@ -140,9 +171,9 @@ public class Main
             scanner.getWarnings().forEach(w -> w.relativizer = config.getRelativizer());
         }
 
-        if (config.getOutputFile() != null)
+        if (config.getOutput() != null)
         {
-            PrintWriter printWriter = new PrintWriter(new FileWriter(config.getOutputFile()));
+            PrintWriter printWriter = new PrintWriter(new FileWriter(config.getOutput()));
             scanner.getWarnings().forEach(w -> printWriter.println("WARNING: " + w));
             printWriter.close();
         }
