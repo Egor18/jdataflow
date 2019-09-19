@@ -175,7 +175,13 @@ public class TestReferences
         }
     }
 
-    void testDifferentArrayReferences1(Map<String, Class<?>[]> m1, Map<String, Class[]> m2)
+    void testDifferentArrayReferences1(Map<String, Class[]> m1)
+    {
+        Class<?>[] clazz1 = new Class[]{ String.class };
+        m1.put("1", clazz1);
+    }
+
+    void testDifferentArrayReferences2(Map<String, Class<?>[]> m1, Map<String, Class[]> m2)
     {
         Class<?>[] clazz1 = new Class[]{ String.class };
         Class<?>[] clazz2 = new Class<?>[]{ String.class };
