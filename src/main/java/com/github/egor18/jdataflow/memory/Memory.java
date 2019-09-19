@@ -155,10 +155,10 @@ public class Memory
             {
                 if (((CtArrayTypeReference) reference).getQualifiedName().equals(type.getQualifiedName()))
                 {
-                    ArrayExpr memoryArray = memoryMap.get(type);
+                    ArrayExpr memoryArray = memoryMap.get(reference);
                     ArrayExpr oldArrayValue = (ArrayExpr) context.mkSelect(memoryArray, address);
                     ArrayExpr newArrayValue = (ArrayExpr) context.mkFreshConst("", oldArrayValue.getSort());
-                    memoryMap.put(type, context.mkStore(memoryArray, address, newArrayValue));
+                    memoryMap.put(reference, context.mkStore(memoryArray, address, newArrayValue));
                 }
             }
         }

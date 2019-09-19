@@ -1,5 +1,7 @@
 package com.github.egor18.jdataflow.testcases;
 
+import java.util.Map;
+
 public class TestReferences
 {
     void testReferenceCompare1(Object o1, Object o2)
@@ -171,5 +173,21 @@ public class TestReferences
                 if (super.y == this.y) {} //ok
             }
         }
+    }
+
+    void testDifferentArrayReferences1(Map<String, Class<?>[]> m1, Map<String, Class[]> m2)
+    {
+        Class<?>[] clazz1 = new Class[]{ String.class };
+        Class<?>[] clazz2 = new Class<?>[]{ String.class };
+        Class[] clazz3 = new Class[]{ String.class };
+        Class[] clazz4 = new Class<?>[]{ String.class };
+        m1.put("1", clazz1);
+        m1.put("2", clazz2);
+        m1.put("3", clazz3);
+        m1.put("4", clazz4);
+        m2.put("1", clazz1);
+        m2.put("2", clazz2);
+        m2.put("3", clazz3);
+        m2.put("4", clazz4);
     }
 }

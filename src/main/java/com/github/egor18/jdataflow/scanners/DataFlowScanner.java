@@ -861,7 +861,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         // Test code for Integer(x) constructor
         if (constructorCall.getType().getQualifiedName().equals("java.lang.Integer")
-            && constructorCall.getArguments().size() == 1)
+            && constructorCall.getExecutable().getParameters().size() == 1
+            && constructorCall.getExecutable().getParameters().get(0).getQualifiedName().equals("int"))
         {
             CtExpression<?> arg1 = constructorCall.getArguments().get(0);
             scan(arg1);

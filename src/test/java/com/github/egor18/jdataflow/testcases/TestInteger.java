@@ -68,4 +68,9 @@ public class TestInteger
         if (a < b) {} //@ALWAYS_FALSE
         if (a <= b) {} //ok
     }
+
+    void testInteger7()
+    {
+        Integer i1 = new Integer("42");
+    }
 }
