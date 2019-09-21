@@ -9,7 +9,9 @@ import spoon.reflect.reference.CtArrayTypeReference;
 import spoon.reflect.reference.CtReference;
 import spoon.reflect.reference.CtTypeReference;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
+import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
 
@@ -96,5 +98,15 @@ public final class CommonUtils
         }
 
         return targetValue != null ? targetValue : makeFreshInt(context);
+    }
+
+    public static String getTimeStamp()
+    {
+        return "[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "]";
+    }
+
+    public static void println(String str)
+    {
+        System.out.println(getTimeStamp() + " " + str);
     }
 }

@@ -1,6 +1,7 @@
 package com.github.egor18.jdataflow;
 
 import com.github.egor18.jdataflow.scanners.CheckersScanner;
+import com.github.egor18.jdataflow.utils.CommonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
@@ -127,7 +128,7 @@ public class Main
         }
         catch (ParseException e)
         {
-            System.out.println("ERROR: " + e.getMessage());
+            CommonUtils.println("ERROR: " + e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
             formatter.setOptionComparator(null);
             formatter.printHelp( " java -jar jdataflow.jar", null, options, null, true);
@@ -157,7 +158,7 @@ public class Main
             }
         }
 
-        System.out.println("Building model");
+        CommonUtils.println("Building model");
         CtModel ctModel = launcher.buildModel();
 
         CheckersScanner scanner = new CheckersScanner(launcher.getFactory(), config);

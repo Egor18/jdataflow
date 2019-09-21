@@ -8,6 +8,7 @@ import com.github.egor18.jdataflow.misc.FlagReference;
 import com.github.egor18.jdataflow.summaries.interfaces.EffectFunction;
 import com.github.egor18.jdataflow.summaries.FunctionSummary;
 import com.github.egor18.jdataflow.summaries.ManualSummaries;
+import com.github.egor18.jdataflow.utils.CommonUtils;
 import com.github.egor18.jdataflow.utils.TypeUtils;
 import com.microsoft.z3.*;
 import spoon.reflect.code.*;
@@ -1196,7 +1197,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtClass(CtClass<T> ctClass)
     {
-        System.out.println("Analyzing class: " + ctClass.getQualifiedName());
+        CommonUtils.println("Analyzing class: " + ctClass.getQualifiedName());
         List<CtTypeMember> typeMembers = ctClass.getTypeMembers();
         int startNumScopes = solver.getNumScopes();
         solver.push();
@@ -1212,7 +1213,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
         catch (Exception e)
         {
-            System.out.println("Failed to analyze class " + ctClass.getQualifiedName() + ":");
+            CommonUtils.println("Failed to analyze class: " + ctClass.getQualifiedName());
             if (config.isNoFailsafe())
             {
                 throw e;
@@ -1282,7 +1283,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
         catch (Exception e)
         {
-            System.out.println("Failed to analyze method " + body.getParent(CtExecutable.class).getSimpleName() + ":");
+            CommonUtils.println("Failed to analyze method: " + body.getParent(CtExecutable.class).getSimpleName());
             if (config.isNoFailsafe())
             {
                 throw e;
@@ -1308,7 +1309,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtConstructor(CtConstructor<T> constructor)
     {
-        System.out.println("Analyzing constructor");
+        CommonUtils.println("Analyzing constructor: " + constructor.getDeclaringType().getSimpleName());
         visitMethod(constructor.getBody(), constructor.getParameters());
     }
 
@@ -1353,7 +1354,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         {
             return;
         }
-        System.out.println("Analyzing method: " + method.getSimpleName());
+        CommonUtils.println("Analyzing method: " + method.getSimpleName());
         List<CtElement> previousMethodIndirectModifications = currentMethodIndirectModifications;
         currentMethodIndirectModifications = collectIndirectModifications(method);
         FunctionSummary previousFunctionSummary = currentFunctionSummary;
