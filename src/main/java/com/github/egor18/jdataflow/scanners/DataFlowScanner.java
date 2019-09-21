@@ -1917,34 +1917,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         CtTypeReference<?> leftType = getActualType(operator.getLeftHandOperand());
         CtTypeReference<?> rightType = getActualType(operator.getRightHandOperand());
-        CtTypeReference<?> operatorType = getActualType(operator);
         BinaryOperatorKind kind = operator.getKind();
-
-        // TODO: Remove this temporary workaround when spoon bug is fixed: https://github.com/INRIA/spoon/pull/3075
-        if (kind == BinaryOperatorKind.PLUS
-            && ((leftType != null && isString(leftType))
-                || (rightType != null && isString(rightType)
-                || (operatorType != null && isString(operatorType)))))
-        {
-            CtTypeReference stringTypeReference = factory.Type().STRING;
-
-            if (operator.getType() == null)
-            {
-                operator.setType(stringTypeReference);
-            }
-
-            if (leftType == null)
-            {
-                operator.getLeftHandOperand().setType(stringTypeReference);
-                leftType = stringTypeReference;
-            }
-
-            if (rightType == null)
-            {
-                operator.getRightHandOperand().setType(stringTypeReference);
-                rightType = stringTypeReference;
-            }
-        }
 
         scan(operator.getLeftHandOperand());
         Expr leftValue = currentResult;
