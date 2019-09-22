@@ -1,6 +1,5 @@
 package com.github.egor18.jdataflow.utils;
 
-import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtTypeReference;
 
@@ -16,8 +15,8 @@ public class SummaryUtils
         return declaringType.getQualifiedName() + "." + signature;
     }
 
-    public static String getFullSignature(CtExecutableReference<?> executable)
+    public static String getFullSignature(CtTypeReference<?> declaringType, CtExecutableReference<?> executable)
     {
-        return executable.getDeclaringType().getQualifiedName() + "." + executable.getSignature();
+        return declaringType.getQualifiedName() + "." + executable.getSignature();
     }
 }

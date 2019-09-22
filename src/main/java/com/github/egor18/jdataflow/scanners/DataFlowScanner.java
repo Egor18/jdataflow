@@ -957,24 +957,27 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             executableDeclaration = null;
         }
 
-        String signature = getFullSignature(executable);
-
-        if (executableDeclaration != null && !config.isInExcludedFile(executableDeclaration))
+        FunctionSummary summary = null;
+        CtTypeReference<?> declaringType = executable.getDeclaringType();
+        if (declaringType != null)
         {
-            if (executableDeclaration instanceof CtMethod)
+            String signature = getFullSignature(declaringType, executable);
+            if (executableDeclaration != null && !config.isInExcludedFile(executableDeclaration))
             {
-                CtMethod<T> method = (CtMethod<T>) executableDeclaration;
-                if (functionSummariesTable.get(signature) == null)
+                if (executableDeclaration instanceof CtMethod)
                 {
-                    if (isInterproceduralPossible(method) && !functionsCallStack.contains(signature))
+                    CtMethod<T> method = (CtMethod<T>) executableDeclaration;
+                    if (functionSummariesTable.get(signature) == null)
                     {
-                        scan(method);
+                        if (isInterproceduralPossible(method) && !functionsCallStack.contains(signature))
+                        {
+                            scan(method);
+                        }
                     }
                 }
             }
+            summary = functionSummariesTable.get(signature);
         }
-
-        FunctionSummary summary = functionSummariesTable.get(signature);
 
         if (summary == null || !summary.isPure())
         {
@@ -1347,7 +1350,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtMethod(CtMethod<T> method)
     {
-        String signature = getFullSignature(method.getReference());
+        String signature = getFullSignature(method.getDeclaringType().getReference(), method.getReference());
         FunctionSummary summary = functionSummariesTable.get(signature);
         boolean alreadyVisited = summary != null && !summary.isManual();
         if (alreadyVisited)
