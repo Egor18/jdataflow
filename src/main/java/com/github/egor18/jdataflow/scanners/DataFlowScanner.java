@@ -1965,77 +1965,79 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             return;
         }
 
-        // Unary Numeric Promotion
-        if (operandValue instanceof BitVecExpr)
+        if (kind == UnaryOperatorKind.POSTINC
+            || kind == UnaryOperatorKind.PREINC
+            || kind == UnaryOperatorKind.POSTDEC
+            || kind == UnaryOperatorKind.PREDEC)
         {
-            operandValue = promoteNumericValue(context, operandValue, operandType);
+            CtExpression<T> operand = operator.getOperand();
+            Expr operandData = operandValue;
+
+            if (operand instanceof CtFieldWrite)
+            {
+                operandData = memory.read(((CtFieldWrite<T>) operand).getVariable(), (IntExpr) operandValue);
+                visitImpure();
+            }
+
+            if (operand instanceof CtArrayWrite)
+            {
+                CtArrayWrite arrayWrite = (CtArrayWrite) operand;
+                CtExpression index = arrayWrite.getIndexExpression();
+                CtTypeReference<?> indexType = getActualType(index);
+                Expr indexExpr = (Expr) index.getMetadata("value");
+
+                // Unboxing conversion
+                if (!indexType.isPrimitive())
+                {
+                    indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
+                }
+
+                operandData = memory.readArray((CtArrayTypeReference) arrayWrite.getTarget().getType(), (IntExpr) operandValue, indexExpr);
+            }
+
+            Expr literalValue = makeLiteral(1);
+            BinaryOperatorKind binOpKind = (kind == UnaryOperatorKind.POSTINC || kind == UnaryOperatorKind.PREINC) ? BinaryOperatorKind.PLUS : BinaryOperatorKind.MINUS;
+            Expr resExpr = calcBinaryOperator(operandData, operandType, literalValue, factory.Type().INTEGER_PRIMITIVE, binOpKind);
+            CtTypeReference<?> rightType = operandType.unbox(); // Binary operator unboxes its operands
+            visitAssignment(operand, operandValue, operandType, resExpr, rightType);
+
+            if (kind == UnaryOperatorKind.POSTINC || kind == UnaryOperatorKind.POSTDEC)
+            {
+                currentResult = operandData;
+            }
         }
-
-        // Unboxing conversion
-        if (!operandType.isPrimitive())
+        else
         {
-            operandValue = memory.read(operandType.unbox(), (IntExpr) operandValue);
-        }
+            // Unboxing conversion
+            if (!operandType.isPrimitive())
+            {
+                operandValue = memory.read(operandType.unbox(), (IntExpr) operandValue);
+            }
 
-        switch (kind)
-        {
-            case NOT:
-                currentResult = context.mkNot((BoolExpr) operandValue);
-                break;
-            case NEG:
-                currentResult = context.mkBVNeg((BitVecExpr) operandValue);
-                break;
-            case POS:
-                currentResult = operandValue;
-                break;
-            case COMPL:
-                int size = TypeUtils.isLong(operandType) ? 64 : 32;
-                currentResult = context.mkBVSub(context.mkBVNeg((BitVecExpr) operandValue), context.mkBV(1, size));
-                break;
-            case POSTINC:
-            case PREINC:
-            case POSTDEC:
-            case PREDEC:
-                CtExpression<T> operand = operator.getOperand();
-                Expr prevExpr;
-                if (operand instanceof CtArrayWrite)
-                {
-                    IntExpr targetExpr = getTargetValue(context, variablesMap, memory, ((CtArrayWrite<T>) operand).getTarget());
-                    CtExpression<Integer> index = ((CtArrayWrite<T>) operand).getIndexExpression();
-                    CtTypeReference<?> indexType = getActualType(index);
-                    Expr indexExpr = (Expr) index.getMetadata("value");
+            // Unary Numeric Promotion
+            if (operandValue instanceof BitVecExpr)
+            {
+                operandValue = promoteNumericValue(context, operandValue, operandType);
+            }
 
-                    // Unboxing conversion
-                    if (!indexType.isPrimitive())
-                    {
-                        indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
-                    }
-
-                    indexExpr = promoteNumericValue(context, indexExpr, indexType);
-                    CtTypeReference<?> arrayType = ((CtArrayWrite<T>) operand).getTarget().getType();
-                    prevExpr = memory.readArray((CtArrayTypeReference) arrayType, targetExpr, indexExpr);
-                }
-                else
-                {
-                    CtVariableReference<?> variable = ((CtVariableWrite<?>) operand).getVariable();
-                    prevExpr = variablesMap.get(variable);
-                }
-
-                Expr literalValue = makeLiteral(1);
-                boolean isIncrement = kind == UnaryOperatorKind.POSTINC || kind == UnaryOperatorKind.PREINC;
-                BinaryOperatorKind binOpKind = isIncrement ? BinaryOperatorKind.PLUS : BinaryOperatorKind.MINUS;
-                Expr resExpr = calcBinaryOperator(prevExpr, operandType, literalValue, factory.Type().INTEGER_PRIMITIVE, binOpKind);
-                CtTypeReference<?> opType = operand.getType().unbox();
-                visitAssignment(operand, operandValue, operandType, resExpr, opType);
-
-                if (kind == UnaryOperatorKind.POSTINC || kind == UnaryOperatorKind.POSTDEC)
-                {
-                    currentResult = prevExpr;
-                }
-
-                break;
-            default:
-                throw new RuntimeException("Unexpected unary operator");
+            switch (kind)
+            {
+                case NOT:
+                    currentResult = context.mkNot((BoolExpr) operandValue);
+                    break;
+                case NEG:
+                    currentResult = context.mkBVNeg((BitVecExpr) operandValue);
+                    break;
+                case POS:
+                    currentResult = operandValue;
+                    break;
+                case COMPL:
+                    int size = TypeUtils.isLong(operandType) ? 64 : 32;
+                    currentResult = context.mkBVSub(context.mkBVNeg((BitVecExpr) operandValue), context.mkBV(1, size));
+                    break;
+                default:
+                    throw new RuntimeException("Unexpected unary operator");
+            }
         }
 
         currentResult = applyCasts(currentResult, operator.getType(), operator.getTypeCasts());

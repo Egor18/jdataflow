@@ -125,4 +125,59 @@ public class TestUnaryOperator
         if (b == 127) {} //@ALWAYS_TRUE
     }
 
+    public Integer field1;
+    void testIncrementField1()
+    {
+        field1++;
+        if (field1++ == 0) {} //ok
+        if (field1++ == 1) {} //ok
+        field1 = 0;
+        if (field1++ == 0) {} //@ALWAYS_TRUE
+        if (field1++ == 1) {} //@ALWAYS_TRUE
+        field1 = 0;
+        if (++field1 == 1) {} //@ALWAYS_TRUE
+        if (++field1 == 2) {} //@ALWAYS_TRUE
+    }
+
+    public int field2;
+    void testIncrementField2()
+    {
+        field2++;
+        if (field2++ == 0) {} //ok
+        if (field2++ == 1) {} //ok
+        field2 = 0;
+        if (field2++ == 0) {} //@ALWAYS_TRUE
+        if (field2++ == 1) {} //@ALWAYS_TRUE
+        field2 = 0;
+        if (++field2 == 1) {} //@ALWAYS_TRUE
+        if (++field2 == 2) {} //@ALWAYS_TRUE
+    }
+
+    public Integer[] fieldArray1;
+    void testIncrementFieldArray1(int i)
+    {
+        fieldArray1[i]++;
+        if (fieldArray1[i]++ == 0) {} //ok
+        if (fieldArray1[i]++ == 1) {} //ok
+        fieldArray1[i] = 0;
+        if (fieldArray1[i]++ == 0) {} //@ALWAYS_TRUE
+        if (fieldArray1[i]++ == 1) {} //@ALWAYS_TRUE
+        fieldArray1[i] = 0;
+        if (++fieldArray1[i] == 1) {} //@ALWAYS_TRUE
+        if (++fieldArray1[i] == 2) {} //@ALWAYS_TRUE
+    }
+
+    public int[] fieldArray2;
+    void testIncrementFieldArray2(int i)
+    {
+        fieldArray2[i]++;
+        if (fieldArray2[i]++ == 0) {} //ok
+        if (fieldArray2[i]++ == 1) {} //ok
+        fieldArray2[i] = 0;
+        if (fieldArray2[i]++ == 0) {} //@ALWAYS_TRUE
+        if (fieldArray2[i]++ == 1) {} //@ALWAYS_TRUE
+        fieldArray2[i] = 0;
+        if (++fieldArray2[i] == 1) {} //@ALWAYS_TRUE
+        if (++fieldArray2[i] == 2) {} //@ALWAYS_TRUE
+    }
 }
