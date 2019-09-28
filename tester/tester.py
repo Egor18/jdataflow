@@ -298,6 +298,8 @@ class Project:
                 if len(self.project_data['build']) != 1:
                     raise Exception('Invalid build command')
                 build_cmd = self.project_data['build'][0]
+                if os.name == 'nt' and build_cmd.startswith('./'):
+                    build_cmd = build_cmd[2:]
                 build_system_name = self.project_data['build-system']
                 scanner_path = SCANNERS_DIR + '/' + f'scan-{build_system_name}.py'
                 report_path = f'{REPORTS_DIR}/{self.project_name}-report.txt'
