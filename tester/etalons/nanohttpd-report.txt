@@ -1,0 +1,1 @@
+WARNING: Condition '(_payloadLength < 0)' is always false when reached (./projects/nanohttpd/websocket/src/main/java/org/nanohttpd/protocols/websockets/WebSocketFrame.java:256)

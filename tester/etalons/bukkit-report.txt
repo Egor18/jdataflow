@@ -1,6 +1,6 @@
 WARNING: Condition 'map != null' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/command/PluginCommandYamlParser.java:23)
-WARNING: Condition '(args.length) > 0' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/command/defaults/MeCommand.java:25)
+WARNING: Condition 'args.length > 0' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/command/defaults/MeCommand.java:25)
 WARNING: Condition 'path == null' is always false when reached (./projects/bukkit/src/main/java/org/bukkit/configuration/MemorySection.java:170)
-WARNING: Condition 'result == null' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/configuration/serialization/ConfigurationSerialization.java:93)
 WARNING: Condition 'delegate == null' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/configuration/serialization/ConfigurationSerialization.java:241)
+WARNING: Condition 'result == null' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/configuration/serialization/ConfigurationSerialization.java:93)
 WARNING: Condition 'perm != null' is always true when reached (./projects/bukkit/src/main/java/org/bukkit/permissions/PermissibleBase.java:93)

@@ -1,0 +1,1 @@
+WARNING: Condition 'c == 0' is always true when reached (./projects/sonarqube/sonar-duplications/src/main/java/org/sonar/duplications/detector/original/BlocksGroup.java:113)

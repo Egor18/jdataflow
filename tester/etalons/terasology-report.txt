@@ -1,0 +1,3 @@
+WARNING: Condition 'setParent' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/nui/CoreScreenLayer.java:140)
+WARNING: Condition 'health != null' is always true when reached (./projects/terasology/modules/Core/src/main/java/org/terasology/logic/health/HealthCommands.java:96)
+WARNING: Condition 'health != null' is always true when reached (./projects/terasology/modules/Core/src/main/java/org/terasology/logic/health/HealthCommands.java:109)

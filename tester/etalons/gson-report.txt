@@ -1,0 +1,2 @@
+WARNING: Condition '((size & 1) == 0)' is always true when reached (./projects/gson/gson/src/main/java/com/google/gson/internal/LinkedHashTreeMap.java:702)
+WARNING: Condition 'com.google.gson.functional.PrettyPrintingTest.DEBUG' is always false when reached (./projects/gson/gson/src/test/java/com/google/gson/functional/PrettyPrintingTest.java:119)
