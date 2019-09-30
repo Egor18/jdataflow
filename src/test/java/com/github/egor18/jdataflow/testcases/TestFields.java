@@ -21,7 +21,6 @@ public class TestFields
     private final byte BYTE_CONSTANT = 41;
     private final byte INTEGER_CONSTANT = 42;
 
-
     void testFields1()
     {
         C1 a = new C1();

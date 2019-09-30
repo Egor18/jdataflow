@@ -29,7 +29,7 @@ public class NullDereferenceChecker extends AbstractChecker
             Expr targetExpr = (Expr) target.getMetadata("value");
             if (targetExpr != null)
             {
-                ConditionStatus alwaysNull = checkCond(getContext().mkEq(targetExpr, getContext().mkInt(Memory.nullPointer())));
+                ConditionStatus alwaysNull = checkCond(getContext().mkEq(targetExpr, getMemory().nullPointer()));
                 if (alwaysNull == ConditionStatus.ALWAYS_TRUE)
                 {
                     addWarning(new Warning(targetedExpression, WarningKind.NULL_DEREFERENCE));

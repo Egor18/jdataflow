@@ -26,8 +26,6 @@ WARNING: Condition 'other.isBottom' is always true when reached (./projects/spot
 WARNING: Condition 'false' is always false when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/Hierarchy.java:857)
 WARNING: Condition 'false && (subTypeSet.size() > 500)' is always false when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/Hierarchy.java:857)
 WARNING: Condition 'isStatic' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/LockAnalysis.java:86)
-WARNING: Condition 'this == edu.umd.cs.findbugs.ba.ResourceValue.instance' is always false when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/ResourceValue.java:47)
-WARNING: Condition 'this == edu.umd.cs.findbugs.ba.ResourceValue.instance' is always false when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/ResourceValue.java:52)
 WARNING: Condition 'edu.umd.cs.findbugs.ba.jsr305.Analysis.FIND_EFFECTIVE_RELEVANT_QUALIFIERS' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/jsr305/Analysis.java:66)
 WARNING: Condition 'edu.umd.cs.findbugs.ba.jsr305.Analysis.FIND_EFFECTIVE_RELEVANT_QUALIFIERS' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/jsr305/Analysis.java:84)
 WARNING: Condition 'edu.umd.cs.findbugs.ba.jsr305.TypeQualifierApplications.CHECK_EXCLUSIVE' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/ba/jsr305/TypeQualifierApplications.java:579)

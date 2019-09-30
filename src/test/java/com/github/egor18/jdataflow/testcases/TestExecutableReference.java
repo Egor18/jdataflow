@@ -14,7 +14,7 @@ public class TestExecutableReference
     void testExecutableReference1()
     {
         Runnable func = this::function;
-        if (this == func) {} //@ALWAYS_FALSE
+        if (this == func) {}
         if (func == null) {} //@ALWAYS_FALSE
         if (r1 == null) {} //ok
         if (r2 == null) {} //ok

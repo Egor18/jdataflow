@@ -17,27 +17,38 @@ public class Memory
     // Maps type reference or field reference to the corresponding memory array
     private Map<CtReference, ArrayExpr> memoryMap = new HashMap<>();
 
-    // Represents a pointer to the next free memory address
-    private int memoryPointer = 2;
+    // Holds next free memory address
+    private int memoryCounter = 1;
 
-    // Z3 solver context
-    private final Context context;
+    // z3 solver context
+    private Context context;
+
+    // z3 solver
+    private Solver solver;
+
+    // Represents a pointer to 'this'
+    private IntExpr thisPointer;
 
     public Map<CtReference, ArrayExpr> getMemoryMap()
     {
         return memoryMap;
     }
 
-    public Memory(Context context)
+    public Memory(Context context, Solver solver)
     {
         this.context = context;
+        this.solver = solver;
+        thisPointer = context.mkIntConst("");
+        solver.add(context.mkDistinct(thisPointer, nullPointer()));
     }
 
     public Memory(Memory other)
     {
         this.context = other.context;
+        this.solver = other.solver;
         this.memoryMap = new HashMap<>(other.memoryMap);
-        this.memoryPointer = other.memoryPointer;
+        this.memoryCounter = other.memoryCounter;
+        this.thisPointer = other.thisPointer;
     }
 
     /**
@@ -112,25 +123,25 @@ public class Memory
      * Returns a pointer to the next free memory address and increments is.
      * Essentially it represents an allocation.
      */
-    public int nextPointer()
+    public IntExpr nextPointer()
     {
-        return memoryPointer++;
+        return context.mkInt(memoryCounter++);
     }
 
     /**
      * Returns null pointer.
      */
-    public static int nullPointer()
+    public IntExpr nullPointer()
     {
-        return 0;
+        return context.mkInt(0);
     }
 
     /**
      * Returns this pointer.
      */
-    public static int thisPointer()
+    public IntExpr thisPointer()
     {
-        return 1;
+        return thisPointer;
     }
 
     /**
@@ -177,7 +188,7 @@ public class Memory
     public void reset()
     {
         memoryMap.clear();
-        memoryPointer = 2;
+        memoryCounter = 1;
     }
 
     /**

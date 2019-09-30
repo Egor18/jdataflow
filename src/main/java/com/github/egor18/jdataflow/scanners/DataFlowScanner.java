@@ -92,7 +92,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         this.factory = factory;
         this.context = new Context();
         this.solver = context.mkSolver();
-        this.memory = new Memory(context);
+        this.memory = new Memory(context, solver);
         this.config = config;
         this.functionSummariesTable = new ManualSummaries(this).getTable();
     }
@@ -306,8 +306,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
      */
     private Expr box(Expr expr, CtTypeReference<?> type)
     {
-        int nextPointer = memory.nextPointer();
-        IntExpr index =  context.mkInt(nextPointer);
+        IntExpr index = memory.nextPointer();
         if (isCalculable(type) && expr != null)
         {
             memory.write(type.unbox(), index, expr);
@@ -858,7 +857,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtConstructorCall(CtConstructorCall<T> constructorCall)
     {
-        int nextPointer = memory.nextPointer();
+        IntExpr nextPointer = memory.nextPointer();
 
         // Test code for Integer(x) constructor
         if (constructorCall.getType().getQualifiedName().equals("java.lang.Integer")
@@ -874,15 +873,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             CtTypeReference<?> arg1SignatureType = constructorCall.getExecutable().getParameters().get(0);
             arg1Value = applyCasts(arg1Value, arg1Type, Collections.singletonList(arg1SignatureType));
 
-            memory.write(constructorCall.getType().unbox(), context.mkInt(nextPointer), arg1Value);
+            memory.write(constructorCall.getType().unbox(), nextPointer, arg1Value);
         }
         else
         {
             constructorCall.getArguments().forEach(this::scan);
         }
 
-        IntExpr constructorCallValue = context.mkInt(nextPointer);
-        currentResult = applyCasts(constructorCallValue, constructorCall.getType(), constructorCall.getTypeCasts());
+        currentResult = applyCasts(nextPointer, constructorCall.getType(), constructorCall.getTypeCasts());
         constructorCall.putMetadata("value", currentResult);
         visitImpure();
     }
@@ -893,8 +891,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         super.visitCtNewClass(newClass);
 
         // Create new object
-        int nextPointer = memory.nextPointer();
-        IntExpr lambdaValue = context.mkInt(nextPointer);
+        IntExpr lambdaValue = memory.nextPointer();
         currentResult = applyCasts(lambdaValue, newClass.getType(), newClass.getTypeCasts());
         newClass.putMetadata("value", currentResult);
     }
@@ -902,8 +899,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtNewArray(CtNewArray<T> newArray)
     {
-        int nextPointer = memory.nextPointer();
-        IntExpr arrayValue = context.mkInt(nextPointer);
+        IntExpr arrayValue = memory.nextPointer();
 
         for (CtExpression<Integer> dimensionExpression : newArray.getDimensionExpressions())
         {
@@ -938,7 +934,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     {
         if (targetExpr != null)
         {
-            BoolExpr notNullExpr = context.mkDistinct(targetExpr, context.mkInt(Memory.nullPointer()));
+            BoolExpr notNullExpr = context.mkDistinct(targetExpr, memory.nullPointer());
             currentConditions = currentConditions == null ? notNullExpr : context.mkAnd(currentConditions, notNullExpr);
         }
     }
@@ -1022,7 +1018,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         if (summary == null || !summary.isPure())
         {
-            IntNum thisExpr = context.mkInt(Memory.thisPointer());
+            IntExpr thisExpr = memory.thisPointer();
             CtTypeReference thisType = invocation.getParent(CtType.class).getReference();
             memory.resetObject(thisType, thisExpr);
 
@@ -1117,7 +1113,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     public void visitCtSynchronized(CtSynchronized synchro)
     {
         // There is synchronization so something could be changed from another thread => reset this
-        IntNum thisExpr = context.mkInt(Memory.thisPointer());
+        IntExpr thisExpr = memory.thisPointer();
         CtTypeReference thisType = synchro.getParent(CtType.class).getReference();
         memory.resetObject(thisType, thisExpr);
         scan(synchro.getExpression());
@@ -1184,7 +1180,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
             else
             {
-                index = context.mkInt(Memory.thisPointer());
+                index = memory.thisPointer();
             }
 
             memory.write(field.getReference(), (IntExpr) index, defaultExpr);
@@ -1414,8 +1410,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         solver.pop();
 
         // Create new object for lambda
-        int nextPointer = memory.nextPointer();
-        IntExpr lambdaValue = context.mkInt(nextPointer);
+        IntExpr lambdaValue = memory.nextPointer();
         currentResult = applyCasts(lambdaValue, lambda.getType(), lambda.getTypeCasts());
         lambda.putMetadata("value", currentResult);
     }
@@ -1424,8 +1419,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(CtExecutableReferenceExpression<T, E> expression)
     {
         // Create new object for this executable reference
-        int nextPointer = memory.nextPointer();
-        IntExpr executableReferenceValue = context.mkInt(nextPointer);
+        IntExpr executableReferenceValue = memory.nextPointer();
         currentResult = applyCasts(executableReferenceValue, expression.getType(), expression.getTypeCasts());
         expression.putMetadata("value", currentResult);
     }
@@ -1549,12 +1543,12 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         Expr valueExpr;
         if (TypeUtils.isNullType(literal.getType()))
         {
-            valueExpr = context.mkInt(Memory.nullPointer());
+            valueExpr = memory.nullPointer();
         }
         else if (TypeUtils.isString(literal.getType()))
         {
             valueExpr = makeFreshInt(context);
-            solver.add(context.mkDistinct(valueExpr, context.mkInt(Memory.nullPointer())));
+            solver.add(context.mkDistinct(valueExpr, memory.nullPointer()));
         }
         else
         {
@@ -1588,7 +1582,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtThisAccess(CtThisAccess<T> thisAccess)
     {
-        Expr thisValue = context.mkInt(Memory.thisPointer());
+        Expr thisValue = memory.thisPointer();
         currentResult = applyCasts(thisValue, thisAccess.getType(), thisAccess.getTypeCasts());
         thisAccess.putMetadata("value", currentResult);
     }
@@ -1596,7 +1590,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtSuperAccess(CtSuperAccess<T> superAccess)
     {
-        Expr superValue = context.mkInt(Memory.thisPointer());
+        Expr superValue = memory.thisPointer();
         currentResult = applyCasts(superValue, superAccess.getType(), superAccess.getTypeCasts());
         superAccess.putMetadata("value", currentResult);
     }
@@ -1899,7 +1893,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 else
                 {
                     IntExpr result = makeFreshInt(context);
-                    solver.add(context.mkDistinct(result, context.mkInt(Memory.nullPointer())));
+                    solver.add(context.mkDistinct(result, memory.nullPointer()));
                     return result;
                 }
             case MINUS:

@@ -99,6 +99,15 @@ public class TestReferences
         if (this == null){} //@ALWAYS_FALSE
         TestReferences a = this;
         if (a == null) {} //@ALWAYS_FALSE
+        if (a == this) {} //@ALWAYS_TRUE
+        if (this == this) {} //@ALWAYS_TRUE
+    }
+
+    private final TestReferences self = new TestReferences();
+    void testThis2()
+    {
+        if (self == null) {} //@ALWAYS_FALSE
+        if (this == self) {} //ok
     }
 
     void testStringLiteral1()

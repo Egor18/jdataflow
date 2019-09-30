@@ -74,7 +74,7 @@ public final class CommonUtils
             }
             else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)
             {
-                targetValue = context.mkInt(Memory.thisPointer());
+                targetValue = memory.thisPointer();
             }
             else if (t instanceof CtVariableRead)
             {
