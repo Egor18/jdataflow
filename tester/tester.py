@@ -41,6 +41,7 @@ PROJECTS = {
             'java/org/apache/coyote/http2/HPackHuffman.java',
             'java/org/apache/el/parser',
             'java/org/apache/tomcat/util/http/parser/HttpParser.java', # takes too long
+            'java/org/apache/tomcat/util/descriptor/web/WebXml.java', # takes too long
             'java/org/apache/tomcat/util/json',
         ],
     },

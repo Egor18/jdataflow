@@ -1017,4 +1017,64 @@ public class TestLoops
         boolean c = true;
         for (; !(a && b && c); a = g1(), b = g2()) {} //@ALWAYS_TRUE
     }
+
+    void testLoopCondition6(int x)
+    {
+        int i = 0;
+        while (i < x)
+        {
+            return;
+        }
+        if (i != x) {} //ok
+        if (i > x) {} //ok
+        if (i <= x) {} //ok
+        if (i < x) {} //@ALWAYS_FALSE
+        if (true) {} //@ALWAYS_TRUE
+    }
+
+    void testLoopCondition7(int x)
+    {
+        int i = 0;
+        for (; i < x; i++)
+        {
+            return;
+        }
+        if (i != x) {} //ok
+        if (i > x) {} //ok
+        if (i <= x) {} //ok
+        if (i < x) {} //@ALWAYS_FALSE
+        if (true) {} //@ALWAYS_TRUE
+    }
+
+    native String getS();
+    void testLoopCondition8(int index)
+    {
+        String res = null;
+        String inner = null;
+        for (; index >= 0; index--)
+        {
+            String main = getS();
+            if (main == null)
+            {
+                break;
+            }
+            if (res == null)
+            {
+                res = main;
+            }
+            else
+            {
+                inner = "not null";
+            }
+            inner = main;
+        }
+        if (res == null)
+        {
+            return;
+        }
+        if (inner != null)
+        {
+            if (index >= 0) {} //ok
+        }
+    }
 }

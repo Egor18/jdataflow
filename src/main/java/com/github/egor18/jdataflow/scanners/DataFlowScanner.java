@@ -99,22 +99,22 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     public BoolExpr getReturnExpr()
     {
-        return (BoolExpr) variablesMap.get(returnFlagReference);
+        return (BoolExpr) Optional.ofNullable(variablesMap.get(returnFlagReference)).orElse(context.mkFalse());
     }
 
     public BoolExpr getBreakExpr()
     {
-        return (BoolExpr) variablesMap.get(breakFlagReference);
+        return (BoolExpr) Optional.ofNullable(variablesMap.get(breakFlagReference)).orElse(context.mkFalse());
     }
 
     public BoolExpr getContinueExpr()
     {
-        return (BoolExpr) variablesMap.get(continueFlagReference);
+        return (BoolExpr) Optional.ofNullable(variablesMap.get(continueFlagReference)).orElse(context.mkFalse());
     }
 
     public BoolExpr getThrowExpr()
     {
-        return (BoolExpr) variablesMap.get(throwFlagReference);
+        return (BoolExpr) Optional.ofNullable(variablesMap.get(throwFlagReference)).orElse(context.mkFalse());
     }
 
     public void setReturnExpr(BoolExpr value)
@@ -339,36 +339,16 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
 
         // Apply information about exit points
-        BoolExpr returnExpr = getReturnExpr();
-        if (returnExpr != null)
-        {
-            BoolExpr reachableExpr = context.mkNot(returnExpr);
-            solver.add(reachableExpr);
-        }
+        solver.add(context.mkNot(getReturnExpr()));
 
         // Apply information about breaks
-        BoolExpr breakExpr = getBreakExpr();
-        if (breakExpr != null)
-        {
-            BoolExpr reachableExpr = context.mkNot(breakExpr);
-            solver.add(reachableExpr);
-        }
+        solver.add(context.mkNot(getBreakExpr()));
 
         // Apply information about continues
-        BoolExpr continueExpr = getContinueExpr();
-        if (continueExpr != null)
-        {
-            BoolExpr reachableExpr = context.mkNot(continueExpr);
-            solver.add(reachableExpr);
-        }
+        solver.add(context.mkNot(getContinueExpr()));
 
         // Apply information about throws
-        BoolExpr throwExpr = getThrowExpr();
-        if (throwExpr != null)
-        {
-            BoolExpr reachableExpr = context.mkNot(throwExpr);
-            solver.add(reachableExpr);
-        }
+        solver.add(context.mkNot(getThrowExpr()));
     }
 
     /**
@@ -475,9 +455,12 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
 
         // Save information about break, return, throw
-        variablesMap.put(breakFlagReference, iterationBranchData.getVariablesMap().get(breakFlagReference));
-        variablesMap.put(returnFlagReference, iterationBranchData.getVariablesMap().get(returnFlagReference));
-        variablesMap.put(throwFlagReference, iterationBranchData.getVariablesMap().get(throwFlagReference));
+        Expr newBreakExpr = context.mkITE(iterationConditionExpr, iterationBranchData.getVariablesMap().get(breakFlagReference), getBreakExpr());
+        Expr newReturnExpr = context.mkITE(iterationConditionExpr, iterationBranchData.getVariablesMap().get(returnFlagReference), getReturnExpr());
+        Expr newThrowExpr = context.mkITE(iterationConditionExpr, iterationBranchData.getVariablesMap().get(throwFlagReference), getThrowExpr());
+        variablesMap.put(breakFlagReference, newBreakExpr);
+        variablesMap.put(returnFlagReference, newReturnExpr);
+        variablesMap.put(throwFlagReference, newThrowExpr);
 
         BoolExpr currentBreakExpr = getBreakExpr();
         BoolExpr currentReturnExpr = getReturnExpr();
@@ -1462,8 +1445,10 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             indexExpr = promoteNumericValue(context, indexExpr, indexType);
             memory.writeArray((CtArrayTypeReference) leftReference, (IntExpr) leftValue, indexExpr, rightValue);
         }
-
-        variablesMap.put(leftReference, rightValue);
+        else
+        {
+            variablesMap.put(leftReference, rightValue);
+        }
         currentResult = rightValue; // Assignment returns its value
     }
 

@@ -1,2 +1,0 @@
-WARNING: Condition 'index2 != mapping.length()' is always false when reached (./projects/spring-framework/spring-web/src/main/java/org/springframework/web/util/UrlPathHelper.java:301)
-WARNING: Condition 'index1 != (-1)' is always false when reached (./projects/spring-framework/spring-web/src/main/java/org/springframework/web/util/UrlPathHelper.java:310)
