@@ -27,6 +27,12 @@ public class FunctionSummary
     // Known effects produced by this function invocation
     private List<EffectFunction> effectFunctions = new ArrayList<>();
 
+    // Indices of read-only (non-modifiable) arguments
+    private List<Integer> readOnlyArguments = new ArrayList<>();
+
+    // Whether target is read-only (non-modifiable)
+    private boolean isReadOnlyTarget;
+
     public ReturnFunction getReturnFunc()
     {
         return returnFunction;
@@ -92,5 +98,37 @@ public class FunctionSummary
     public List<EffectFunction> getEffects()
     {
         return effectFunctions;
+    }
+
+    public FunctionSummary readOnlyArgument(Integer argumentIndex)
+    {
+        readOnlyArguments.add(argumentIndex);
+        return this;
+    }
+
+    public List<Integer> getReadOnlyArguments()
+    {
+        return readOnlyArguments;
+    }
+
+    public void setReadOnlyArguments(List<Integer> readOnlyArguments)
+    {
+        this.readOnlyArguments = readOnlyArguments;
+    }
+
+    public boolean isReadOnlyTarget()
+    {
+        return isReadOnlyTarget;
+    }
+
+    public void setReadOnlyTarget(boolean isReadOnlyTarget)
+    {
+        this.isReadOnlyTarget = isReadOnlyTarget;
+    }
+
+    public FunctionSummary readOnlyTarget()
+    {
+        isReadOnlyTarget = true;
+        return this;
     }
 }

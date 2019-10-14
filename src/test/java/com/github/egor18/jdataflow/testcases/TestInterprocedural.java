@@ -177,4 +177,187 @@ public class TestInterprocedural
     {
         if (n1() == n1()) {} //ok
     }
+
+    class A
+    {
+        int x;
+        int y;
+    }
+
+    class B
+    {
+        M m;
+    }
+
+    class V
+    {
+        int x;
+        private native void f();
+    }
+
+    class M
+    {
+        V v;
+        private void f()
+        {
+            new Object(); // makes it impure
+        }
+
+        private void g()
+        {
+            new Object(); // makes it impure
+            this.v = new V();
+        }
+    }
+
+    private void g1(B arg)
+    {
+        new Object(); // makes it impure
+    }
+
+    private void g2(B arg)
+    {
+        new Object(); // makes it impure
+        arg.m = null;
+    }
+
+    private void g3(B arg)
+    {
+        new Object(); // makes it impure
+        arg.m.v.x = 42;
+    }
+
+    private void g4(B arg)
+    {
+        new Object(); // makes it impure
+        arg = null;
+    }
+
+    private void g5(B arg)
+    {
+        new Object(); // makes it impure
+        arg.m.v.x += 42;
+    }
+
+    private void g6(B arg)
+    {
+        new Object(); // makes it impure
+        ++arg.m.v.x;
+    }
+
+    private void g7(B arg)
+    {
+        new Object(); // makes it impure
+        arg.m.v.f();
+    }
+
+    private void g8(B[] arg)
+    {
+        new Object(); // makes it impure
+        arg[0].m.v.x = 42;
+    }
+
+    private void g9(B arg)
+    {
+        new Object(); // makes it impure
+        g1(arg);
+        g1(arg);
+        g1(arg);
+    }
+
+    private void g10(B arg)
+    {
+        new Object(); // makes it impure
+        g9(arg);
+    }
+
+    private void g11(B arg)
+    {
+        new Object(); // makes it impure
+        int x = arg.m.v.x + 1;
+    }
+
+    void testReadOnlyArguments1()
+    {
+        B b = new B();
+
+        b.m.v.x = 1;
+        g1(b);
+        if (b.m.v.x == 42) {} //@ALWAYS_FALSE
+
+        b.m.v.x = 1;
+        g2(b);
+        if (b.m.v.x == 42) {} //ok
+
+        b.m.v.x = 1;
+        g3(b);
+        if (b.m.v.x == 42) {} //ok
+
+        b.m.v.x = 1;
+        g4(b);
+        if (b.m.v.x == 42) {} //@ALWAYS_FALSE
+
+        b.m.v.x = 1;
+        g5(b);
+        if (b.m.v.x == 42) {} //ok
+
+        b.m.v.x = 1;
+        g6(b);
+        if (b.m.v.x == 42) {} //ok
+
+        b.m.v.x = 1;
+        g7(b);
+        if (b.m.v.x == 42) {} //ok
+
+        B[] arr = new B[] {b};
+        arr[0].m.v.x = 1;
+        g8(arr);
+        if (arr[0].m.v.x == 42) {} //ok
+
+        b.m.v.x = 1;
+        g9(b);
+        if (b.m.v.x == 42) {} //@ALWAYS_FALSE
+
+        b.m.v.x = 1;
+        g10(b);
+        if (b.m.v.x == 42) {} //@ALWAYS_FALSE
+
+        b.m.v.x = 1;
+        g11(b);
+        if (b.m.v.x == 42) {} //@ALWAYS_FALSE
+    }
+
+    private void g12(B arg1, B arg2, B arg3)
+    {
+        new Object(); // makes it impure
+        arg3 = arg1;
+        arg2.m.v.x = 42;
+    }
+
+    void testReadOnlyArguments2()
+    {
+        B b1 = new B();
+        B b2 = new B();
+        B b3 = new B();
+        b1.m.v.x = 1;
+        b2.m.v.x = 1;
+        b3.m.v.x = 1;
+        g12(b1, b2, b3);
+        if (b1.m.v.x == 42) {} //@ALWAYS_FALSE
+        if (b2.m.v.x == 42) {} //ok
+        if (b3.m.v.x == 42) {} //@ALWAYS_FALSE
+    }
+
+    void testReadOnlyTarget1()
+    {
+        M m = new M();
+
+        m.v.x = 1;
+        m.f();
+        if (m.v.x == 1) {} //@ALWAYS_TRUE
+
+        m.v.x = 1;
+        m.g();
+        if (m.v.x == 1) {} //ok
+    }
 }

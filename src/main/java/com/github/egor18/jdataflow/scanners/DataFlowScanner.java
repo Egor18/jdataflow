@@ -22,6 +22,7 @@ import spoon.reflect.visitor.filter.TypeFilter;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
 import static com.github.egor18.jdataflow.utils.PromotionUtils.*;
@@ -922,6 +923,51 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
     }
 
+    /**
+     * Updates function summary if expression mutates this or parameters
+     */
+    private void visitMutation(CtExpression<?> expression)
+    {
+        if (currentFunctionSummary != null)
+        {
+            while (expression instanceof CtTargetedExpression)
+            {
+                expression = ((CtTargetedExpression) expression).getTarget();
+                if (expression instanceof CtThisAccess || expression instanceof CtSuperAccess)
+                {
+                    currentFunctionSummary.setReadOnlyTarget(false);
+                    return;
+                }
+            }
+            if (expression instanceof CtVariableRead)
+            {
+                CtVariableReference variable = ((CtVariableRead) expression).getVariable();
+                if (variable instanceof CtParameterReference)
+                {
+                    CtParameterReference param = (CtParameterReference) variable;
+                    CtExecutable declaration;
+                    try
+                    {
+                        declaration = param.getDeclaringExecutable().getDeclaration();
+                    }
+                    catch (Exception e)
+                    {
+                        return;
+                    }
+                    List<CtParameter<?>> parameters = declaration.getParameters();
+                    for (int i = 0; i < parameters.size(); i++)
+                    {
+                        if (parameters.get(i).getReference().equals(param))
+                        {
+                            currentFunctionSummary.getReadOnlyArguments().remove((Integer) i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public <T> void visitCtInvocation(CtInvocation<T> invocation)
     {
@@ -964,16 +1010,19 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
 
         List<CtExpression<?>> arguments = invocation.getArguments();
-        for (CtExpression<?> argument : arguments)
+        for (int i = 0; i < arguments.size(); i++)
         {
+            CtExpression<?> argument = arguments.get(i);
             scan(argument);
             Expr argumentExpr = currentResult;
             if (argumentExpr != null)
             {
                 CtTypeReference<?> argumentType = getActualType(argument);
-                if (!argumentType.isPrimitive() && !isImmutable(argumentType) && (summary == null || !summary.isPure()))
+                boolean isReadOnlyArgument = summary != null && (summary.isPure() || summary.getReadOnlyArguments().contains(i));
+                if (!argumentType.isPrimitive() && !isImmutable(argumentType) && !isReadOnlyArgument)
                 {
                     memory.resetObject(argumentType, (IntExpr) argumentExpr);
+                    visitMutation(argument);
                 }
             }
         }
@@ -991,9 +1040,11 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 if (!(target instanceof CtTypeAccess))
                 {
                     dereferenceTarget = true;
-                    if (!isImmutable(targetType) && (summary == null || !summary.isPure()))
+                    boolean isReadOnlyTarget = (summary != null && (summary.isPure() || summary.isReadOnlyTarget()));
+                    if (!isImmutable(targetType) && !isReadOnlyTarget)
                     {
                         memory.resetObject(targetType, (IntExpr) targetExpr);
+                        visitMutation(target);
                     }
                 }
             }
@@ -1309,7 +1360,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             {
                 return element instanceof CtFieldWrite
                        || element instanceof CtArrayWrite
-                       || element instanceof CtInvocation
+                       || element instanceof CtInvocation // TODO: check its summary
                        || element instanceof CtConstructorCall;
             }
         };
@@ -1345,6 +1396,19 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         if (method.getBody() == null) // native, abstract, etc.
         {
             visitImpure();
+        }
+        else
+        {
+            // Mark all arguments and target as read-only initially
+            if (!method.getParameters().isEmpty())
+            {
+                List<Integer> range = IntStream.range(0, method.getParameters().size()).boxed().collect(Collectors.toList());
+                currentFunctionSummary.setReadOnlyArguments(range);
+            }
+            if (!method.isStatic())
+            {
+                currentFunctionSummary.setReadOnlyTarget(true);
+            }
         }
         functionsCallStack.push(signature);
 
@@ -1672,6 +1736,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         checkFieldWrite(fieldWrite);
         visitDereference(currentResult);
         visitImpure();
+        visitMutation(fieldWrite);
     }
 
     @Override
@@ -1710,6 +1775,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         checkArrayWrite(arrayWrite);
         visitDereference(currentResult);
         visitImpure();
+        visitMutation(arrayWrite);
     }
 
     /**
