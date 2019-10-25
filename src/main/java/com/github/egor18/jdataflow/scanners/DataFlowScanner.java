@@ -8,6 +8,7 @@ import com.github.egor18.jdataflow.misc.FlagReference;
 import com.github.egor18.jdataflow.summaries.interfaces.EffectFunction;
 import com.github.egor18.jdataflow.summaries.FunctionSummary;
 import com.github.egor18.jdataflow.summaries.ManualSummaries;
+import com.github.egor18.jdataflow.summaries.interfaces.ThrowEffectFunction;
 import com.github.egor18.jdataflow.utils.CommonUtils;
 import com.github.egor18.jdataflow.utils.TypeUtils;
 import com.microsoft.z3.*;
@@ -408,6 +409,77 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         if (currentFunctionSummary != null)
         {
             currentFunctionSummary.setPure(false);
+        }
+    }
+
+    /**
+     * Returns true if the expression depends only on current method's parameters.
+     */
+    private boolean isParametersOnlyDependant(Expr expr, CtExecutable<?> parentExecutable)
+    {
+        // TODO: Do not walk through too large expressions
+        Expr[] args = expr.getArgs();
+        if (args.length != 0)
+        {
+            for (Expr arg : args)
+            {
+                if (!isParametersOnlyDependant(arg, parentExecutable))
+                {
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            if (expr.isNumeral())
+            {
+                return true;
+            }
+            if (expr.isConst())
+            {
+                return parentExecutable.getParameters().stream()
+                                                       .anyMatch(p -> expr.equals(variablesMap.get(p.getReference())));
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void inferThrowEffect(CtElement throwingElement)
+    {
+        if (currentFunctionSummary == null)
+        {
+            return;
+        }
+
+        if (throwingElement.getParent(CtTry.class) != null || throwingElement.getParent(CtLoop.class) != null)
+        {
+            return;
+        }
+
+        CtExecutable<?> parentExecutable = throwingElement.getParent(CtExecutable.class);
+        if (parentExecutable == null || parentExecutable instanceof CtLambda)
+        {
+            return;
+        }
+
+        BoolExpr conditionsExpr = currentConditions == null ? context.mkTrue() : currentConditions;
+        BoolExpr returnExpr = getReturnExpr();
+        if (isParametersOnlyDependant(conditionsExpr, parentExecutable) && isParametersOnlyDependant(returnExpr, parentExecutable))
+        {
+            List<CtParameter<?>> parameters = parentExecutable.getParameters();
+            Expr[] params = parameters.stream().map(p -> variablesMap.get(p.getReference())).toArray(Expr[]::new);
+            final BoolExpr currentMethodConditions = conditionsExpr;
+            final BoolExpr currentMethodReturnExpr = returnExpr;
+            final BoolExpr currentMethodThrowExpr = getThrowExpr();
+            currentFunctionSummary.addThrowEffect((target, args) ->
+            {
+                BoolExpr throwConditionExpr = (BoolExpr) currentMethodConditions.substitute(params, args);
+                BoolExpr returnConditionExpr = (BoolExpr) currentMethodReturnExpr.substitute(params, args);
+                BoolExpr throwExpr = (BoolExpr) currentMethodThrowExpr.substitute(params, args);
+                BoolExpr condExpr = context.mkAnd(throwConditionExpr, context.mkNot(returnConditionExpr));
+                setThrowExpr((BoolExpr) context.mkITE(condExpr, throwExpr, getThrowExpr()));
+            });
         }
     }
 
@@ -827,15 +899,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         scan(throwStatement.getThrownExpression());
         setThrowExpr(context.mkTrue());
         visitImpure();
-
-        if (currentFunctionSummary != null)
-        {
-            // Test code (more complex effects will be deduced in the future)
-            if (currentConditions == null && getReturnExpr().isFalse())
-            {
-                currentFunctionSummary.addEffect((target, args) -> { setThrowExpr(context.mkTrue()); });
-            }
-        }
+        inferThrowEffect(throwStatement);
     }
 
     @Override
@@ -1098,6 +1162,10 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             for (EffectFunction effect : summary.getEffects())
             {
                 effect.apply(targetExpr, argsExprs.toArray(new Expr[0]));
+                if (effect instanceof ThrowEffectFunction)
+                {
+                    inferThrowEffect(invocation);
+                }
             }
         }
 
@@ -1374,7 +1442,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     private boolean isInterproceduralPossible(CtMethod<?> method)
     {
-        return method.isFinal() || method.isStatic() || method.isPrivate();
+        return (method.isFinal() || method.isStatic() || method.isPrivate()) && method.getBody() != null;
     }
 
     @Override
@@ -1391,14 +1459,12 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         List<CtElement> previousMethodIndirectModifications = currentMethodIndirectModifications;
         currentMethodIndirectModifications = collectIndirectModifications(method);
         FunctionSummary previousFunctionSummary = currentFunctionSummary;
-        currentFunctionSummary = new FunctionSummary();
-        currentFunctionSummary.setPure(true);
-        if (method.getBody() == null) // native, abstract, etc.
+
+        if (isInterproceduralPossible(method))
         {
-            visitImpure();
-        }
-        else
-        {
+            currentFunctionSummary = new FunctionSummary();
+            currentFunctionSummary.setPure(true);
+
             // Mark all arguments and target as read-only initially
             if (!method.getParameters().isEmpty())
             {
@@ -1410,12 +1476,19 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 currentFunctionSummary.setReadOnlyTarget(true);
             }
         }
+        else
+        {
+            currentFunctionSummary = null;
+            visitImpure();
+        }
+
         functionsCallStack.push(signature);
 
         visitMethod(method.getBody(), method.getParameters());
 
         CtTypeReference<?> returnType = method.getType();
         if (!isVoid(returnType)
+            && currentFunctionSummary != null
             && currentFunctionSummary.isPure()
             && currentFunctionSummary.getReturnFunc() == null
             && !currentFunctionSummary.isManual())

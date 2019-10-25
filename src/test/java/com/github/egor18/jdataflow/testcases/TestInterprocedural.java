@@ -81,13 +81,85 @@ public class TestInterprocedural
         }
     }
 
-    void throwException2(boolean cond)
+    private void throwException(int x)
+    {
+        if (x > 42)
+        {
+            throwException();
+        }
+    }
+
+    private void throwException(int x, Object o)
+    {
+        if (o == null)
+        {
+            throw new RuntimeException("error");
+        }
+    }
+
+    private void throwException(Object o1, Object o2)
+    {
+        if (o2 != null)
+        {
+        }
+        else
+        {
+            if (o1 == null)
+            {
+                throw new RuntimeException("error");
+            }
+        }
+    }
+
+    private void throwException(int i, int j)
+    {
+        if (i != 42)
+        {
+        }
+        else
+        {
+            if (j != 42)
+            {
+                throw new RuntimeException("error");
+            }
+        }
+    }
+
+    private void throwExceptionUnderTrue()
+    {
+        if (true) //@ALWAYS_TRUE
+        {
+            throw new RuntimeException("error");
+        }
+    }
+
+    private void throwExceptionWithReturn1(boolean cond)
     {
         if (cond)
         {
             return;
         }
-        throw new RuntimeException("Exception");
+        throw new RuntimeException("error");
+    }
+
+    private void throwExceptionWithReturn2(boolean cond)
+    {
+        if (true) //@ALWAYS_TRUE
+        {
+            if (cond)
+            {
+                return;
+            }
+            throw new RuntimeException("error");
+        }
+    }
+
+    private void throwIfLessThanZero(int x)
+    {
+        if (x < 0)
+        {
+            throw new RuntimeException("error");
+        }
     }
 
     void testThrow1(boolean x)
@@ -108,19 +180,201 @@ public class TestInterprocedural
         if (x) {} //ok
     }
 
-    void testThrow3(boolean cond)
+    void testThrow3(boolean cond, boolean x)
+    {
+        if (cond)
+        {
+            throwException(cond);
+        }
+        if (cond) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow4(boolean cond)
     {
         throwException();
         if (cond) {} //TODO: warn about unreachable code (new checker)
     }
 
-    void testThrow4(boolean cond, boolean x)
+    void testThrow5(boolean cond, boolean x)
     {
         if (x)
         {
             throwException(cond);
         }
         if (x) {} //ok
+    }
+
+    void testThrow6(Object o)
+    {
+        if (o == null)
+        {
+            throwException(10, o);
+        }
+        if (o == null) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow7(Object o1, Object o2)
+    {
+        if (o1 == null && o2 == null)
+        {
+            throwException(o1, o2);
+        }
+        if (o1 == null && o2 == null) {} //@ALWAYS_FALSE
+        if (o1 == null) {} //ok
+        if (o2 == null) {} //ok
+    }
+
+    void testThrow8(int i, int j)
+    {
+        if (i == 42 && j != 42)
+        {
+            throwException(i, j);
+        }
+        if (i == 42 && j != 42) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow9(boolean cond)
+    {
+        if (cond)
+        {
+            throwExceptionUnderTrue();
+        }
+        if (cond) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow10(boolean cond)
+    {
+        throwExceptionWithReturn1(cond);
+        if (cond) {} //@ALWAYS_TRUE
+    }
+
+    void testThrow11(boolean cond)
+    {
+        throwExceptionWithReturn1(!cond);
+        if (cond) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow12(boolean cond)
+    {
+        throwExceptionWithReturn2(!cond);
+        if (cond) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow13(int x)
+    {
+        if (x == 100)
+        {
+            throwException(x);
+        }
+        if (x == 100) {} //@ALWAYS_FALSE
+    }
+
+    void testThrow14(int x)
+    {
+        if (x < -10)
+        {
+            throwIfLessThanZero(x);
+        }
+        if (x == -12) {} //@ALWAYS_FALSE
+        if (x == -2) {} //ok
+        if (x == 10) {} //ok
+    }
+
+    private void f1(boolean a1, boolean a2)
+    {
+        if (a1 && a2)
+        {
+            throw new RuntimeException("error");
+        }
+    }
+
+    private void f2(boolean b)
+    {
+        if (!b)
+        {
+            f1(true, true);
+        }
+    }
+
+    void testThrow15(boolean cond)
+    {
+        if (!cond)
+        {
+            f2(cond);
+        }
+        if (cond) {} //@ALWAYS_TRUE
+    }
+
+    private void throwOne()
+    {
+        throwException();
+    }
+
+    private void throwTwo(boolean b)
+    {
+        if (b)
+        {
+            throwOne();
+        }
+    }
+
+    private void throwThree(boolean b)
+    {
+        if (!b)
+        {
+            throwTwo(true);
+        }
+    }
+
+    void testThrow16(boolean b)
+    {
+        if (!b)
+        {
+            throwThree(b);
+        }
+        if (!b) {} //@ALWAYS_FALSE
+    }
+
+    private void throwInsideCatch()
+    {
+        try
+        {
+            throw new RuntimeException("err");
+        }
+        catch (Exception e) {}
+    }
+
+    void testThrow17(boolean b)
+    {
+        if (b)
+        {
+            throwInsideCatch();
+        }
+        if (b) {} //ok
+    }
+
+    private void throwWithLoop(boolean b, boolean d)
+    {
+        while (true)
+        {
+            if (d)
+            {
+                break;
+            }
+            if (b)
+            {
+                throw new RuntimeException("err");
+            }
+        }
+    }
+
+    void testThrow18(boolean b)
+    {
+        if (b)
+        {
+            throwWithLoop(b, true);
+        }
+        if (b) {} //ok
     }
 
     private int r1(int depth)

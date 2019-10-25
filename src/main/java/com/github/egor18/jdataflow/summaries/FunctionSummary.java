@@ -2,6 +2,7 @@ package com.github.egor18.jdataflow.summaries;
 
 import com.github.egor18.jdataflow.summaries.interfaces.EffectFunction;
 import com.github.egor18.jdataflow.summaries.interfaces.ReturnFunction;
+import com.github.egor18.jdataflow.summaries.interfaces.ThrowEffectFunction;
 import com.microsoft.z3.FuncDecl;
 
 import java.util.ArrayList;
@@ -93,6 +94,11 @@ public class FunctionSummary
     {
         this.effectFunctions.add(effectFunction);
         return this;
+    }
+
+    public FunctionSummary addThrowEffect(ThrowEffectFunction effectFunction)
+    {
+        return addEffect(effectFunction);
     }
 
     public List<EffectFunction> getEffects()

@@ -1,5 +1,6 @@
 WARNING: Condition '(busy == 0)' is always true when reached (./projects/guava/guava/src/com/google/common/cache/Striped64.java:197)
 WARNING: Condition '(cells == as)' is always true when reached (./projects/guava/guava/src/com/google/common/cache/Striped64.java:236)
+WARNING: Condition 'keyList == null' is always false when reached (./projects/guava/guava/src/com/google/common/collect/LinkedListMultimap.java:489)
 WARNING: Condition 'cmp > 0' is always true when reached (./projects/guava/guava/src/com/google/common/collect/RegularImmutableSortedSet.java:146)
 WARNING: Condition '(busy == 0)' is always true when reached (./projects/guava/guava/src/com/google/common/hash/Striped64.java:197)
 WARNING: Condition '(cells == as)' is always true when reached (./projects/guava/guava/src/com/google/common/hash/Striped64.java:236)

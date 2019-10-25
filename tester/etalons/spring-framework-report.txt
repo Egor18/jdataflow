@@ -1,0 +1,2 @@
+WARNING: Condition 'actualContentType != null' is always true when reached (./projects/spring-framework/spring-test/src/main/java/org/springframework/test/web/client/match/ContentRequestMatchers.java:102)
+WARNING: Condition 'handler != null' is always true when reached (./projects/spring-framework/spring-test/src/main/java/org/springframework/test/web/servlet/result/HandlerResultMatchers.java:70)
