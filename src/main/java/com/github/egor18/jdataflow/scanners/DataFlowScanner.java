@@ -944,18 +944,52 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         newClass.putMetadata("value", currentResult);
     }
 
+    /**
+     * Returns artificial reference to array.length field
+     */
+    private CtTypeReference getArrayLengthFieldReference()
+    {
+        return factory.createTypeReference().setSimpleName("#ARRAY_LENGTH");
+    }
+
     @Override
     public <T> void visitCtNewArray(CtNewArray<T> newArray)
     {
         IntExpr arrayValue = memory.nextPointer();
 
-        for (CtExpression<Integer> dimensionExpression : newArray.getDimensionExpressions())
+        // For the sake of simplicity we calculate the length of a top-level array only.
+        // It is possible to calculate all the lengths of a multidimensional array, but it could be a bit tricky because of jagged arrays.
+        Expr arrayLengthExpr = null;
+        List<CtExpression<Integer>> dimensionExpressions = newArray.getDimensionExpressions();
+        if (!dimensionExpressions.isEmpty())
         {
-            scan(dimensionExpression);
-            // TODO: Set array.length equal to dimension size
-            // It seems that spoon does not provide a way to get reference to the array.length property so far.
-            // The code should be something like this:
-            // memory.write(lengthFieldReference, arrayValue, dimensionLengthExpr);
+            for (int i = 0; i < dimensionExpressions.size(); i++)
+            {
+                CtExpression<Integer> dimensionExpression = dimensionExpressions.get(i);
+                CtTypeReference<?> dimensionExpressionType = getActualType(dimensionExpression);
+                scan(dimensionExpression);
+                if (i == 0)
+                {
+                    arrayLengthExpr = currentResult;
+
+                    // Unboxing conversion
+                    if (!dimensionExpressionType.isPrimitive())
+                    {
+                        arrayLengthExpr = memory.read(dimensionExpressionType.unbox(), (IntExpr) arrayLengthExpr);
+                    }
+
+                    arrayLengthExpr = promoteNumericValue(context, arrayLengthExpr, dimensionExpressionType);
+                }
+            }
+        }
+        else
+        {
+            arrayLengthExpr = context.mkBV(newArray.getElements().size(), 32);
+        }
+
+        if (arrayLengthExpr != null)
+        {
+            memory.write(getArrayLengthFieldReference(), arrayValue, arrayLengthExpr);
         }
 
         CtTypeReference<?> componentType = ((CtArrayTypeReference) (newArray.getType())).getComponentType();
@@ -1780,7 +1814,6 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         scan(target);
 
         targetExpr = getTargetValue(context, variablesMap, memory, target);
-
         if (isCalculable(fieldRead.getType())
             && fieldRead.getVariable().isStatic()
             && fieldRead.getVariable().isFinal()
@@ -1790,8 +1823,19 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
         else
         {
-            currentResult = memory.read(fieldRead.getVariable(), targetExpr);
-            visitImpure();
+            // Handle array.length
+            if (target != null
+                && target.getType() instanceof CtArrayTypeReference
+                && fieldRead.getVariable().getSimpleName().equals("length"))
+            {
+                currentResult = memory.read(getArrayLengthFieldReference(), targetExpr);
+                solver.add(context.mkBVSGE((BitVecExpr) currentResult, context.mkBV(0, 32)));
+            }
+            else
+            {
+                currentResult = memory.read(fieldRead.getVariable(), targetExpr);
+                visitImpure();
+            }
         }
 
         currentResult = applyCasts(currentResult, fieldRead.getType(), fieldRead.getTypeCasts());

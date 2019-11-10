@@ -225,6 +225,102 @@ public class TestArray
         if (new int[] {1,2,3} == null) {} //@ALWAYS_FALSE
     }
 
+    void testArray21()
+    {
+        int[] arr = {1,2,3};
+        if (arr[new Integer(2)] == 3) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayLength1()
+    {
+        char[] arr1 = new char[3];
+        if (arr1.length == 3) {} //@ALWAYS_TRUE
+
+        char[] arr2 = new char[]{'1', '2', '3', '4'};
+        if (arr2.length == 4) {} //@ALWAYS_TRUE
+
+        int[][] arr3 = new int[6][8];
+        if (arr3.length == 6) {} //@ALWAYS_TRUE
+        if (arr3[0].length == 8) {}
+    }
+
+    void testArrayLength2(int[] arr1)
+    {
+        if (arr1.length == 10) {} //ok
+        if (arr1.length == 0) {} //ok
+        if (arr1.length == -1) {} //@ALWAYS_FALSE
+        if (arr1.length < 0) {} //@ALWAYS_FALSE
+        if (arr1.length == -10) {} //@ALWAYS_FALSE
+    }
+
+    void testArrayLength3(boolean cond)
+    {
+        int[] arr;
+        if (cond)
+        {
+            arr = new int[5];
+        }
+        else
+        {
+            arr = new int[10];
+        }
+        if (arr.length == 5) {} //ok
+        if (arr.length == 10) {} //ok
+        if (arr.length == 4) {} //@ALWAYS_FALSE
+        if (arr.length != 5 && arr.length != 10) {} //@ALWAYS_FALSE
+    }
+
+    void testArrayLength4()
+    {
+        int[] arr1 = new int[4];
+        int[] arr2 = new int[4];
+        int[] arr3 = new int[6];
+        if (arr1.length == arr3.length) {} //@ALWAYS_FALSE
+        if (arr1.length == arr2.length) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayLength5(boolean cond)
+    {
+        int len = cond ? 5 : 7;
+        int[] arr1 = new int[len];
+        if (cond)
+        {
+            if (arr1.length == 5) {} //@ALWAYS_TRUE
+        }
+        else
+        {
+            if (arr1.length == 7) {} //@ALWAYS_TRUE
+        }
+    }
+
+    void testArrayLength6()
+    {
+        Integer len = new Integer(5);
+        int[] arr1 = new int[len];
+        if (arr1.length == 5) {} //@ALWAYS_TRUE
+    }
+
+    public Integer integerField;
+    void testArrayLength7()
+    {
+        integerField = new Integer(5);
+        int[] arr1 = new int[integerField];
+        if (arr1.length == 5) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayLength8()
+    {
+        byte len = 10;
+        int[] arr = new int[len];
+        if (arr.length == 10) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayLength9(Object size)
+    {
+        Object[] arr1 = new Object[(Integer) size];
+        if (arr1.length == (Integer) size) {} //@ALWAYS_TRUE
+    }
+
     public int[] publicArrayField;
     void testArrayField1()
     {
@@ -240,6 +336,13 @@ public class TestArray
 
         publicArrayField[3]++;
         if (publicArrayField[3] == 4) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayFieldLength1()
+    {
+        if (publicArrayField.length == 10) {} //ok
+        if (publicArrayField.length >= 0) {} //@ALWAYS_TRUE
+        if (publicArrayField.length == -1) {} //@ALWAYS_FALSE
     }
 
     private class DateTime

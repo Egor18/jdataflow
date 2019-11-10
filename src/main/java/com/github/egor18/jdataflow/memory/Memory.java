@@ -66,12 +66,16 @@ public class Memory
                 ArraySort arraySort = context.mkArraySort(context.mkBitVecSort(32), getTypeSort(context, ((CtArrayTypeReference) reference).getComponentType()));
                 sort = context.mkArraySort(context.mkIntSort(), arraySort);
             }
+            else if (reference.getSimpleName().equals("#ARRAY_LENGTH"))
+            {
+                sort = context.mkArraySort(context.getIntSort(), context.mkBitVecSort(32));
+            }
             else
             {
                 CtTypeReference typeReference = reference instanceof CtVariableReference ? ((CtVariableReference) reference).getType() : (CtTypeReference) reference;
                 sort = context.mkArraySort(context.getIntSort(), getTypeSort(context, typeReference));
             }
-            memoryArray = (ArrayExpr) context.mkFreshConst(reference + "_memo_array_", sort);
+            memoryArray = (ArrayExpr) context.mkFreshConst(reference + "_mem_array_", sort);
             memoryMap.put(reference, memoryArray);
         }
     }
