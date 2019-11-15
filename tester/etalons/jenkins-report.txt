@@ -2,6 +2,7 @@ WARNING: Condition '_hasToken = true' is always true when reached (./projects/je
 WARNING: Condition '(ch <= 'Z')' is always false when reached (./projects/jenkins/core/src/main/java/hudson/Functions.java:1667)
 WARNING: Condition '(('z' <= ch) && (ch <= 'Z'))' is always false when reached (./projects/jenkins/core/src/main/java/hudson/Functions.java:1667)
 WARNING: Condition '(jarFile != null)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/PluginManager.java:1117)
+WARNING: Condition 'newResult != oldResult' is always false when reached (./projects/jenkins/core/src/main/java/hudson/model/AbstractBuild.java:753)
 WARNING: Condition '(cnt < 5)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/model/AbstractProject.java:557)
 WARNING: Condition '(cnt < 5)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/model/AbstractProject.java:566)
 WARNING: Condition 'hudson.search.UserSearchProperty.DEFAULT_SEARCH_CASE_INSENSITIVE_MODE' is always true when reached (./projects/jenkins/core/src/main/java/hudson/search/UserSearchProperty.java:32)

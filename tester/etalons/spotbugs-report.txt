@@ -84,6 +84,7 @@ WARNING: Condition 'edu.umd.cs.findbugs.detect.FindNonSerializableValuePassedToW
 WARNING: Condition 'edu.umd.cs.findbugs.SystemProperties.ASSERTIONS_ENABLED' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindNullDeref.java:1148)
 WARNING: Condition 'infeasibleEdgeSimplyThrowsException' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindNullDeref.java:1201)
 WARNING: Condition 'interesting' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindNullDerefsInvolvingNonShortCircuitEvaluation.java:64)
+WARNING: Condition '(result.getPriority() <= edu.umd.cs.findbugs.Priorities.LOW_PRIORITY)' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindRefComparison.java:1241)
 WARNING: Condition 'edu.umd.cs.findbugs.detect.FindRefComparison.REPORT_ALL_REF_COMPARISONS' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindRefComparison.java:887)
 WARNING: Condition 'relaxed || edu.umd.cs.findbugs.detect.FindRefComparison.REPORT_ALL_REF_COMPARISONS' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindRefComparison.java:887)
 WARNING: Condition 'reportAll' is always true when reached (./projects/spotbugs/spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindRefComparison.java:896)

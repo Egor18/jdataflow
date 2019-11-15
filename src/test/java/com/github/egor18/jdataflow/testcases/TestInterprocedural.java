@@ -614,4 +614,73 @@ public class TestInterprocedural
         m.g();
         if (m.v.x == 1) {} //ok
     }
+
+    private int x;
+    private Integer y;
+
+    public int getX()
+    {
+        return x;
+    }
+
+    public Integer getY()
+    {
+        return y;
+    }
+
+    public int get()
+    {
+        return 42;
+    }
+
+    void testGetter1()
+    {
+        x = 42;
+        if (getX() == 42) {} //@ALWAYS_TRUE
+
+        y = new Integer(42);
+        if (getY() == 42); //@ALWAYS_TRUE
+    }
+
+    void testGetter2()
+    {
+        if (getX() == getX()) {} //@ALWAYS_TRUE
+    }
+
+    void testGetName()
+    {
+        if (get() == get()) {} //ok
+    }
+
+    public void setX(int arg)
+    {
+        x = arg;
+    }
+
+    public void setY(Integer arg)
+    {
+        y = arg;
+    }
+
+    public void set(int arg)
+    {
+        x = arg * y;
+    }
+
+    void testSetter1()
+    {
+        setX(42);
+        if (x == 42) {} //@ALWAYS_TRUE
+
+        setY(42);
+        if (y == 42) {} //@ALWAYS_TRUE
+
+        setY(new Integer(142));
+        if (y == 142) {} //@ALWAYS_TRUE
+    }
+
+    void testSetName()
+    {
+        set(42); //ok
+    }
 }

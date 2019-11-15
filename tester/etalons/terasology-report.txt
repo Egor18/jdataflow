@@ -1,3 +1,8 @@
+WARNING: Condition 'freeform.getMax() != null' is always true when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/atlas/AtlasFormat.java:113)
+WARNING: Condition '(null == data.getColors())' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/mesh/ColladaMeshFormat.java:88)
+WARNING: Condition '(null == data.getTexCoord0())' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/mesh/ColladaMeshFormat.java:89)
+WARNING: Condition '(null != data.getTexCoord0())' is always true when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/mesh/ColladaMeshFormat.java:93)
+WARNING: Condition '(null != data.getColors())' is always true when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/mesh/ColladaMeshFormat.java:101)
 WARNING: Condition 'setParent' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/nui/CoreScreenLayer.java:140)
 WARNING: Condition 'health != null' is always true when reached (./projects/terasology/modules/Core/src/main/java/org/terasology/logic/health/HealthCommands.java:96)
 WARNING: Condition 'health != null' is always true when reached (./projects/terasology/modules/Core/src/main/java/org/terasology/logic/health/HealthCommands.java:109)

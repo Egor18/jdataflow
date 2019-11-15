@@ -5,7 +5,9 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
 import spoon.reflect.code.*;
+import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.reference.CtArrayTypeReference;
+import spoon.reflect.reference.CtFieldReference;
 import spoon.reflect.reference.CtReference;
 import spoon.reflect.reference.CtTypeReference;
 
@@ -98,6 +100,134 @@ public final class CommonUtils
         }
 
         return targetValue != null ? targetValue : makeFreshInt(context);
+    }
+
+    /**
+     * Returns true if the body of this method is one statement returning a corresponding field
+     */
+    public static boolean isGetter(CtMethod<?> method)
+    {
+        if (method.getBody() == null)
+        {
+            return false;
+        }
+
+        if (method.isStatic())
+        {
+            return false;
+        }
+
+        if (!method.getSimpleName().toLowerCase().startsWith("get"))
+        {
+            return false;
+        }
+
+        if (method.getBody().getStatements().size() != 1)
+        {
+            return false;
+        }
+
+        CtStatement statement = method.getBody().getStatement(0);
+        if (!(statement instanceof CtReturn))
+        {
+            return false;
+        }
+
+        CtExpression returnedExpression = ((CtReturn) statement).getReturnedExpression();
+        if (!(returnedExpression instanceof CtFieldRead))
+        {
+            return false;
+        }
+
+        if (((CtFieldRead) returnedExpression).getVariable() == null)
+        {
+            return false;
+        }
+
+        if (!method.getType().equals(returnedExpression.getType()))
+        {
+            return false;
+        }
+
+        String getName = method.getSimpleName().toLowerCase().split("get", 2)[1];
+        String varName = ((CtFieldRead) returnedExpression).getVariable().getSimpleName().toLowerCase();
+
+        return getName.equals(varName);
+    }
+
+    /**
+     * Returns true if the body of this method is one statement setting a corresponding field
+     */
+    public static boolean isSetter(CtMethod<?> method)
+    {
+        if (method.getBody() == null)
+        {
+            return false;
+        }
+
+        if (method.isStatic())
+        {
+            return false;
+        }
+
+        if (!method.getSimpleName().toLowerCase().startsWith("set"))
+        {
+            return false;
+        }
+
+        if (method.getBody().getStatements().size() != 1)
+        {
+            return false;
+        }
+
+        if (method.getParameters().size() != 1)
+        {
+            return false;
+        }
+
+        CtStatement statement = method.getBody().getStatement(0);
+        if (!(statement instanceof CtAssignment))
+        {
+            return false;
+        }
+
+        CtExpression<?> assignment = ((CtAssignment) statement).getAssignment();
+        if (!(assignment instanceof CtVariableRead))
+        {
+            return false;
+        }
+
+        if (!((CtVariableRead) assignment).getVariable().equals(method.getParameters().get(0).getReference()))
+        {
+            return false;
+        }
+
+        CtExpression<?> assigned = ((CtAssignment) statement).getAssigned();
+
+        if (!(assigned instanceof CtFieldWrite))
+        {
+            return false;
+        }
+
+        if (!assigned.getType().equals(method.getParameters().get(0).getType()))
+        {
+            return false;
+        }
+
+        String setName = method.getSimpleName().toLowerCase().split("set", 2)[1];
+        String varName = ((CtFieldWrite<?>) assigned).getVariable().getSimpleName().toLowerCase();
+
+        return setName.equals(varName);
+    }
+
+    public static CtFieldReference getGetterFieldReference(CtMethod<?> method)
+    {
+        return ((CtFieldRead) ((CtReturn) method.getBody().getStatement(0)).getReturnedExpression()).getVariable();
+    }
+
+    public static CtFieldReference getSetterFieldReference(CtMethod<?> method)
+    {
+        return ((CtFieldWrite) (((CtAssignment) method.getBody().getStatement(0)).getAssigned())).getVariable();
     }
 
     public static String getTimeStamp()

@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.github.egor18.jdataflow.utils.CommonUtils.getTargetValue;
+import static com.github.egor18.jdataflow.utils.CommonUtils.*;
 import static com.github.egor18.jdataflow.utils.PromotionUtils.*;
 import static com.github.egor18.jdataflow.utils.SummaryUtils.getFullSignature;
 import static com.github.egor18.jdataflow.utils.TypeUtils.*;
@@ -1107,6 +1107,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             visitImpure();
         }
 
+        // Visit invocation arguments
         List<CtExpression<?>> arguments = invocation.getArguments();
         for (int i = 0; i < arguments.size(); i++)
         {
@@ -1125,6 +1126,10 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
+        boolean isGetter = executableDeclaration instanceof CtMethod && isGetter((CtMethod<?>) executableDeclaration);
+        boolean isSetter = executableDeclaration instanceof CtMethod && isSetter((CtMethod<?>) executableDeclaration);
+
+        // Visit invocation target
         CtExpression<?> target = invocation.getTarget();
         Expr targetExpr = null;
         boolean dereferenceTarget = false;
@@ -1139,7 +1144,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 {
                     dereferenceTarget = true;
                     boolean isReadOnlyTarget = (summary != null && (summary.isPure() || summary.isReadOnlyTarget()));
-                    if (!isImmutable(targetType) && !isReadOnlyTarget)
+                    if (!isImmutable(targetType) && !isReadOnlyTarget && !isGetter && !isSetter)
                     {
                         memory.resetObject(targetType, (IntExpr) targetExpr);
                         visitMutation(target);
@@ -1148,7 +1153,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
-        if (summary == null || !summary.isPure())
+        // Visit invocation indirect modifications
+        if ((summary == null || !summary.isPure()) && !isGetter && !isSetter)
         {
             IntExpr thisExpr = memory.thisPointer();
             CtTypeReference thisType = invocation.getParent(CtType.class).getReference();
@@ -1193,27 +1199,31 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 argsExprs.add(argExpr);
             }
 
-            for (EffectFunction effect : summary.getEffects())
+            if (targetExpr != null)
             {
-                effect.apply(targetExpr, argsExprs.toArray(new Expr[0]));
-                if (effect instanceof ThrowEffectFunction)
+                for (EffectFunction effect : summary.getEffects())
                 {
-                    inferThrowEffect(invocation);
+                    effect.apply(targetExpr, argsExprs.toArray(new Expr[0]));
+                    if (effect instanceof ThrowEffectFunction)
+                    {
+                        inferThrowEffect(invocation);
+                    }
                 }
             }
         }
 
+        // Visit invocation return
         CtTypeReference<?> returnType = invocation.getType();
         if (!isVoid(returnType))
         {
             Expr returnValue;
             if (summary != null && !isEllipsis) // TODO: handle ellipsis properly
             {
-                if (summary.getReturnFunc() != null)
+                if (summary.getReturnFunc() != null && targetExpr != null)
                 {
                     returnValue = summary.getReturnFunc().apply(targetExpr, argsExprs.toArray(new Expr[0]));
                 }
-                else if (summary.getSymbolicReturn() != null)
+                else if (summary.getSymbolicReturn() != null && targetExpr != null)
                 {
                     List<Expr> actualArgs = new ArrayList<>();
                     if (!executable.isStatic())
@@ -1476,7 +1486,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     private boolean isInterproceduralPossible(CtMethod<?> method)
     {
-        return (method.isFinal() || method.isStatic() || method.isPrivate()) && method.getBody() != null;
+        return method.getBody() != null && (method.isFinal() || method.isStatic() || method.isPrivate() || isGetter(method) || isSetter(method));
     }
 
     @Override
@@ -1520,26 +1530,37 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         visitMethod(method.getBody(), method.getParameters());
 
-        CtTypeReference<?> returnType = method.getType();
-        if (!isVoid(returnType)
-            && currentFunctionSummary != null
-            && currentFunctionSummary.isPure()
-            && currentFunctionSummary.getReturnFunc() == null
-            && !currentFunctionSummary.isManual())
+        if (currentFunctionSummary != null)
         {
-            List<Sort> argsSorts = new ArrayList<>();
-            if (!method.isStatic())
+            // Despite the fact that getters and setters are usually made public, we can get away with doing interprocedural analysis for them.
+            if (isSetter(method))
             {
-                Sort targetSort = context.getIntSort();
-                argsSorts.add(targetSort);
+                CtFieldReference<?> setterField = getSetterFieldReference(method);
+                currentFunctionSummary.addEffect((target, args) -> { memory.write(setterField, (IntExpr) target, args[0]); });
             }
-            argsSorts.addAll(method.getParameters().stream().map(p -> getTypeSort(context, p.getType())).collect(Collectors.toList()));
-            Sort returnSort = getTypeSort(context, method.getType());
-            currentFunctionSummary.setSymbolicReturn(context.mkFreshFuncDecl("", argsSorts.toArray(new Sort[0]), returnSort));
-        }
 
-        if (isInterproceduralPossible(method))
-        {
+            CtTypeReference<?> returnType = method.getType();
+            if (!isVoid(returnType))
+            {
+                if (isGetter(method))
+                {
+                    CtFieldReference<?> getterField = getGetterFieldReference(method);
+                    currentFunctionSummary.setReturn((target, args) -> { return memory.read(getterField, (IntExpr) target); });
+                }
+                else if (currentFunctionSummary.isPure() && currentFunctionSummary.getReturnFunc() == null && !currentFunctionSummary.isManual())
+                {
+                    List<Sort> argsSorts = new ArrayList<>();
+                    if (!method.isStatic())
+                    {
+                        Sort targetSort = context.getIntSort();
+                        argsSorts.add(targetSort);
+                    }
+                    argsSorts.addAll(method.getParameters().stream().map(p -> getTypeSort(context, p.getType())).collect(Collectors.toList()));
+                    Sort returnSort = getTypeSort(context, method.getType());
+                    currentFunctionSummary.setSymbolicReturn(context.mkFreshFuncDecl("", argsSorts.toArray(new Sort[0]), returnSort));
+                }
+            }
+
             functionSummariesTable.put(signature, currentFunctionSummary);
         }
         currentFunctionSummary = previousFunctionSummary;
