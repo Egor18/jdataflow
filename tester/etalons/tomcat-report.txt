@@ -30,8 +30,6 @@ WARNING: Condition 'org.apache.coyote.http2.ConnectionSettingsBase.DEFAULT_ENABL
 WARNING: Condition '(b & 0b11100000) == 0b100000' is always true when reached (./projects/tomcat/java/org/apache/coyote/http2/HpackDecoder.java:152)
 WARNING: Condition '(currPath != null)' is always true when reached (./projects/tomcat/java/org/apache/jasper/compiler/JspConfig.java:205)
 WARNING: Condition '(prevPath != null)' is always true when reached (./projects/tomcat/java/org/apache/jasper/compiler/JspConfig.java:208)
-WARNING: Condition '(lastModified[1] != cacheEntry.getEntryLastModified())' is always true when reached (./projects/tomcat/java/org/apache/jasper/compiler/TldCache.java:104)
-WARNING: Condition '(lastModified[0] != cacheEntry.getWebAppPathLastModified()) || (lastModified[1] != cacheEntry.getEntryLastModified())' is always true when reached (./projects/tomcat/java/org/apache/jasper/compiler/TldCache.java:103)
 WARNING: Condition 'seconds < first' is always true when reached (./projects/tomcat/java/org/apache/juli/DateFormatCache.java:169)
 WARNING: Condition 'omittedMethods.length > 0' is always true when reached (./projects/tomcat/java/org/apache/tomcat/util/descriptor/web/SecurityCollection.java:233)
 WARNING: Condition 'ok' is always true when reached (./projects/tomcat/java/org/apache/tomcat/util/descriptor/web/WebXmlParser.java:95)

@@ -44,4 +44,20 @@ public class TestSynchronized<T>
             }
         }
     }
+
+    class A
+    {
+        public int x;
+    }
+
+    void testSynchronized4(A a)
+    {
+        if (a.x != 42)
+        {
+            synchronized (a)
+            {
+                if (a.x != 42) {} //ok
+            }
+        }
+    }
 }

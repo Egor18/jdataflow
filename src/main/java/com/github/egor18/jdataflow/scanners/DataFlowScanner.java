@@ -1258,11 +1258,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public void visitCtSynchronized(CtSynchronized synchro)
     {
-        // There is synchronization so something could be changed from another thread => reset this
+        // There is synchronization so something could be changed from another thread => reset
         IntExpr thisExpr = memory.thisPointer();
         CtTypeReference thisType = synchro.getParent(CtType.class).getReference();
         memory.resetObject(thisType, thisExpr);
         scan(synchro.getExpression());
+        Expr synchroExpr = currentResult;
+        memory.resetObject(getActualType(synchro.getExpression()), (IntExpr) synchroExpr);
         scan(synchro.getBlock());
         visitImpure();
     }
