@@ -76,6 +76,20 @@ public class Main
         configFileOption.setArgs(1);
         options.addOption(configFileOption);
 
+        Option timeoutOption = new Option("t", String.format("Timeout for analyzing a single class member in seconds (%d by default)", Configuration.DEFAULT_TIMEOUT_SECONDS));
+        timeoutOption.setLongOpt("timeout");
+        timeoutOption.setRequired(false);
+        timeoutOption.setArgName("arg");
+        timeoutOption.setArgs(1);
+        options.addOption(timeoutOption);
+
+        Option z3TimeoutOption = new Option(null, String.format("Timeout for a single Z3 solver check in seconds (%d by default)", Configuration.DEFAULT_Z3_CHECK_TIMEOUT_SECONDS));
+        z3TimeoutOption.setLongOpt("z3-timeout");
+        z3TimeoutOption.setRequired(false);
+        z3TimeoutOption.setArgName("arg");
+        z3TimeoutOption.setArgs(1);
+        options.addOption(z3TimeoutOption);
+
         Option noFailsafeOption = new Option(null, "no-failsafe", false, "Terminate analysis immediately on any internal error");
         noFailsafeOption.setRequired(false);
         options.addOption(noFailsafeOption);
@@ -103,6 +117,8 @@ public class Main
         config.setIncludes(cmd.getOptionValues("i"));
         config.setRelativizer(cmd.getOptionValue("r"));
         config.setConfigFile(cmd.getOptionValue("c"));
+        config.setTimeout(cmd.getOptionValue("t") == null ? Configuration.DEFAULT_TIMEOUT_SECONDS : Integer.valueOf(cmd.getOptionValue("t")));
+        config.setZ3Timeout(cmd.getOptionValue("z3-timeout") == null ? Configuration.DEFAULT_Z3_CHECK_TIMEOUT_SECONDS : Integer.valueOf(cmd.getOptionValue("z3-timeout")));
         config.setNoFailsafe(cmd.hasOption("no-failsafe"));
         return config;
     }

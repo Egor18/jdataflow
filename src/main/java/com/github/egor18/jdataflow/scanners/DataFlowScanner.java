@@ -1,6 +1,8 @@
 package com.github.egor18.jdataflow.scanners;
 
 import com.github.egor18.jdataflow.Configuration;
+import com.github.egor18.jdataflow.exceptions.JDataFlowException;
+import com.github.egor18.jdataflow.exceptions.JDataFlowTimeoutException;
 import com.github.egor18.jdataflow.memory.Memory;
 import com.github.egor18.jdataflow.misc.BranchData;
 import com.github.egor18.jdataflow.misc.ConditionStatus;
@@ -89,11 +91,27 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Analyzer configuration
     private Configuration config;
 
+    // Timeout for analyzing a single class member in milliseconds
+    private Integer timeout;
+
+    // Current class member being analyzed (used for timeout detection)
+    private CtElement currentMember;
+
+    // Previous class member was being analyzed (used for timeout detection)
+    private CtElement previousMember;
+
+    // Timestamp of the current class member analysis start (used for timeout detection)
+    private long currentMemberAnalysisStartTime = 0;
+
     public DataFlowScanner(Factory factory, Configuration config)
     {
         this.factory = factory;
         this.context = new Context();
         this.solver = context.mkSolver();
+        Params params = context.mkParams();
+        params.add("timeout", config.getZ3Timeout() * 1000);
+        solver.setParameters(params);
+        this.timeout = config.getTimeout() * 1000;
         this.memory = new Memory(context, solver);
         this.config = config;
         this.functionSummariesTable = new ManualSummaries(this).getTable();
@@ -172,6 +190,32 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         throwFlagReference = FlagReference.makeFreshThrowReference();
         variablesMap.put(throwFlagReference, context.mkFalse());
+    }
+
+    @Override
+    public void scan(CtElement element)
+    {
+        if (currentMember != null)
+        {
+            if (currentMember == previousMember)
+            {
+                if (System.currentTimeMillis() - currentMemberAnalysisStartTime > timeout)
+                {
+                    SourcePosition position = currentMember.getPosition();
+                    currentMember = null;
+                    previousMember = null;
+                    currentMemberAnalysisStartTime = 0;
+                    throw new JDataFlowTimeoutException(position);
+                }
+            }
+            else
+            {
+                previousMember = currentMember;
+                currentMemberAnalysisStartTime = System.currentTimeMillis();
+            }
+        }
+
+        super.scan(element);
     }
 
     /**
@@ -1094,6 +1138,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                     {
                         if (isInterproceduralPossible(method) && !functionsCallStack.contains(signature))
                         {
+                            currentMember = method;
                             scan(method);
                         }
                     }
@@ -1341,6 +1386,10 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
     }
 
+    public void handleException(JDataFlowException e)
+    {
+    }
+
     @Override
     public <T> void visitCtClass(CtClass<T> ctClass)
     {
@@ -1352,11 +1401,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         Memory oldMemory = new Memory(memory);
         memory.resetMutable();
 
+        currentMember = null;
+        previousMember = null;
+        currentMemberAnalysisStartTime = 0;
         try
         {
             // Before visiting a class, we should visit all of its fields
-            typeMembers.forEach(m -> {if (m instanceof CtField) { scan(m); }});
-            typeMembers.forEach(m -> {if (!(m instanceof CtField)) { scan(m); }});
+            typeMembers.forEach(m -> { if (m instanceof CtField) { currentMember = m; scan(m); } });
+            typeMembers.forEach(m -> { if (!(m instanceof CtField)) { currentMember = m; scan(m); } });
         }
         catch (Exception e)
         {
@@ -1368,6 +1420,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             else
             {
                 e.printStackTrace();
+                if (e instanceof JDataFlowTimeoutException)
+                {
+                    handleException((JDataFlowTimeoutException) e);
+                }
+                else
+                {
+                    handleException(new JDataFlowException(e, currentMember.getPosition()));
+                }
             }
         }
         finally
@@ -1438,6 +1498,14 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             else
             {
                 e.printStackTrace();
+                if (e instanceof JDataFlowTimeoutException)
+                {
+                    handleException((JDataFlowTimeoutException) e);
+                }
+                else
+                {
+                    handleException(new JDataFlowException(e, currentMember.getPosition()));
+                }
             }
         }
         finally

@@ -10,6 +10,10 @@ import java.io.IOException;
 
 public class Configuration
 {
+    public static final Integer DEFAULT_TIMEOUT_SECONDS = 300;
+
+    public static final Integer DEFAULT_Z3_CHECK_TIMEOUT_SECONDS = 30;
+
     @SerializedName("sources")
     private String[] sources;
 
@@ -30,6 +34,12 @@ public class Configuration
 
     @SerializedName("relativizer")
     private String relativizer;
+
+    @SerializedName("timeout")
+    private Integer timeout = DEFAULT_TIMEOUT_SECONDS;
+
+    @SerializedName("z3-timeout")
+    private Integer z3Timeout = DEFAULT_Z3_CHECK_TIMEOUT_SECONDS;
 
     @SerializedName("no-failsafe")
     private boolean noFailsafe;
@@ -104,6 +114,26 @@ public class Configuration
     public void setRelativizer(String relativizer)
     {
         this.relativizer = relativizer;
+    }
+
+    public Integer getTimeout()
+    {
+        return timeout;
+    }
+
+    public void setTimeout(Integer timeout)
+    {
+        this.timeout = timeout;
+    }
+
+    public Integer getZ3Timeout()
+    {
+        return z3Timeout;
+    }
+
+    public void setZ3Timeout(Integer z3Timeout)
+    {
+        this.z3Timeout = z3Timeout;
     }
 
     public boolean isNoFailsafe()

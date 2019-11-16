@@ -14,12 +14,20 @@ public class Warning
     public String message;
     public String relativizer;
 
-    public Warning(CtElement element, WarningKind kind)
+    public Warning(SourcePosition position, WarningKind kind, Object... args)
+    {
+        this.kind = kind;
+        this.position = position;
+        this.message = String.format(kind.message, args);
+        this.relativizer = null;
+    }
+
+    public Warning(CtElement element, WarningKind kind, Object... args)
     {
         this.element = element;
         this.kind = kind;
         this.position = element.getPosition();
-        this.message = String.format(kind.message, element.toString());
+        this.message = String.format(kind.message, element.toString(), args);
         this.relativizer = null;
     }
 

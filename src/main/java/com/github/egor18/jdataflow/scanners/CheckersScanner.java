@@ -4,7 +4,10 @@ import com.github.egor18.jdataflow.Configuration;
 import com.github.egor18.jdataflow.checkers.AbstractChecker;
 import com.github.egor18.jdataflow.checkers.AlwaysTrueFalseChecker;
 import com.github.egor18.jdataflow.checkers.NullDereferenceChecker;
+import com.github.egor18.jdataflow.exceptions.JDataFlowException;
+import com.github.egor18.jdataflow.exceptions.JDataFlowTimeoutException;
 import com.github.egor18.jdataflow.warning.Warning;
+import com.github.egor18.jdataflow.warning.WarningKind;
 import spoon.reflect.code.*;
 import spoon.reflect.factory.Factory;
 
@@ -34,6 +37,13 @@ public class CheckersScanner extends DataFlowScanner
         super(factory, config);
         checkers.add(new AlwaysTrueFalseChecker(this));
         checkers.add(new NullDereferenceChecker(this));
+    }
+
+    @Override
+    public void handleException(JDataFlowException e)
+    {
+        WarningKind kind = e instanceof JDataFlowTimeoutException ? WarningKind.TIMEOUT : WarningKind.EXCEPTION;
+        warnings.add(new Warning(e.getPosition(), kind, e.getMessage()));
     }
 
     @Override
