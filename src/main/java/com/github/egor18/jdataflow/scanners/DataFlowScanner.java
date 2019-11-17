@@ -572,9 +572,12 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         }
 
         // Save information about break, return, throw
-        Expr newBreakExpr = context.mkITE(iterationConditionExpr, iterationBranchData.getVariablesMap().get(breakFlagReference), getBreakExpr());
-        Expr newReturnExpr = context.mkITE(iterationConditionExpr, iterationBranchData.getVariablesMap().get(returnFlagReference), getReturnExpr());
-        Expr newThrowExpr = context.mkITE(iterationConditionExpr, iterationBranchData.getVariablesMap().get(throwFlagReference), getThrowExpr());
+        Expr iterationBreakExpr = Optional.ofNullable(iterationBranchData.getVariablesMap().get(breakFlagReference)).orElse(context.mkFalse());
+        Expr iterationReturnExpr = Optional.ofNullable(iterationBranchData.getVariablesMap().get(returnFlagReference)).orElse(context.mkFalse());
+        Expr iterationThrowExpr = Optional.ofNullable(iterationBranchData.getVariablesMap().get(throwFlagReference)).orElse(context.mkFalse());
+        Expr newBreakExpr = context.mkITE(iterationConditionExpr, iterationBreakExpr, getBreakExpr());
+        Expr newReturnExpr = context.mkITE(iterationConditionExpr, iterationReturnExpr, getReturnExpr());
+        Expr newThrowExpr = context.mkITE(iterationConditionExpr, iterationThrowExpr, getThrowExpr());
         variablesMap.put(breakFlagReference, newBreakExpr);
         variablesMap.put(returnFlagReference, newReturnExpr);
         variablesMap.put(throwFlagReference, newThrowExpr);
