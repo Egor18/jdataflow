@@ -1420,14 +1420,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             else
             {
                 e.printStackTrace();
-                if (e instanceof JDataFlowTimeoutException)
-                {
-                    handleException((JDataFlowTimeoutException) e);
-                }
-                else
-                {
-                    handleException(new JDataFlowException(e, currentMember.getPosition()));
-                }
+                handleException(e instanceof JDataFlowTimeoutException ? (JDataFlowTimeoutException) e : new JDataFlowException(e, currentMember.getPosition()));
             }
         }
         finally
@@ -1498,14 +1491,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             else
             {
                 e.printStackTrace();
-                if (e instanceof JDataFlowTimeoutException)
-                {
-                    handleException((JDataFlowTimeoutException) e);
-                }
-                else
-                {
-                    handleException(new JDataFlowException(e, currentMember.getPosition()));
-                }
+                handleException(e instanceof JDataFlowTimeoutException ? (JDataFlowTimeoutException) e : new JDataFlowException(e, currentMember.getPosition()));
             }
         }
         finally
