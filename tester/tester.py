@@ -128,7 +128,7 @@ PROJECTS = {
         'download' : ['git clone -c core.longpaths=true https://github.com/javaparser/javaparser.git javaparser --depth 1 -b v3.13.10'],
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests'],
-        'exclude' : ['javaparser-core/target/generated-sources'],
+        'exclude' : ['javaparser-core/target/generated-sources', 'javaparser-core/src/main/java/com/github/javaparser/metamodel/JavaParserMetaModel.java'],
     },
 
     'guava' : {

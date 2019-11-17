@@ -589,8 +589,6 @@ WARNING: Condition 'reqfields != null' is always true when reached (./projects/s
 WARNING: Condition '(pos >= 0)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug3572704.java:14)
 WARNING: Condition '(two == null)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1241.java:14)
 WARNING: Null dereference occurs in the 'p.setName("name2")' expression (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1253.java:24)
-WARNING: Condition 'types == null' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1347.java:20)
-WARNING: Condition 'types2 == null' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1347.java:32)
 WARNING: Condition 'nonNegative == (-1)' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1359.java:161)
 WARNING: Condition 'flag' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1361.java:19)
 WARNING: Condition 'flag' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1361.java:27)

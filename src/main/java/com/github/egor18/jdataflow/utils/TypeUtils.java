@@ -5,6 +5,11 @@ import spoon.reflect.code.CtExpression;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.reference.CtWildcardReference;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public final class TypeUtils
 {
     private TypeUtils() {}
@@ -252,5 +257,39 @@ public final class TypeUtils
     public static IntExpr makeFreshInt(Context context)
     {
         return (IntExpr) context.mkFreshConst("", context.getIntSort());
+    }
+
+    private static Map<CtTypeReference<?>, CtTypeReference<?>> superclassesCache = new HashMap<>();
+
+    /**
+     * Returns superclass of a given type; uses caching.
+     */
+    public static CtTypeReference<?> getSuperclass(CtTypeReference<?> type)
+    {
+        if (superclassesCache.containsKey(type))
+        {
+            return superclassesCache.get(type);
+        }
+        else
+        {
+            CtTypeReference<?> superclass = type.getSuperclass();
+            superclassesCache.put(type, superclass);
+            return superclass;
+        }
+    }
+
+    /**
+     * Returns all superclasses of a given type; uses caching.
+     */
+    public static List<CtTypeReference<?>> getAllSuperclasses(CtTypeReference<?> type)
+    {
+        List<CtTypeReference<?>> superclasses = new ArrayList<>();
+        CtTypeReference<?> s = getSuperclass(type);
+        while (s != null)
+        {
+            superclasses.add(s);
+            s = getSuperclass(s);
+        }
+        return superclasses;
     }
 }

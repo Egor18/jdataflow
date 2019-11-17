@@ -272,6 +272,25 @@ public class TestReset
         if (x2 == null) {} //@ALWAYS_FALSE
     }
 
+    class Base
+    {
+        public int x;
+    }
+
+    class Derived extends Base
+    {
+    }
+
+    public native void func(Derived arg);
+
+    void testReset18()
+    {
+        Derived d = new Derived();
+        d.x = 42;
+        func(d);
+        if (d.x == 42) {} //ok
+    }
+
     void testArrayReset1()
     {
         int[] arr = {1, 2, 3};

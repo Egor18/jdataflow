@@ -4,6 +4,7 @@ import com.microsoft.z3.*;
 import spoon.reflect.reference.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.github.egor18.jdataflow.utils.TypeUtils.*;
@@ -154,16 +155,23 @@ public class Memory
      */
     public void resetObject(CtTypeReference type, IntExpr address)
     {
+        List<CtTypeReference<?>> superclasses = getAllSuperclasses(type);
+        String typeName = type.getQualifiedName();
+
         // Reset fields and array elements
         for (Map.Entry<CtReference, ArrayExpr> entry : memoryMap.entrySet())
         {
             CtReference reference = entry.getKey();
             if (reference instanceof CtFieldReference)
             {
-                if (((CtFieldReference) reference).getDeclaringType().getQualifiedName().equals(type.getQualifiedName()))
+                String fieldDeclaringTypeName = ((CtFieldReference) reference).getDeclaringType().getQualifiedName();
+                if (typeName.equals(fieldDeclaringTypeName) || superclasses.stream().anyMatch(t -> t.getQualifiedName().equals(fieldDeclaringTypeName)))
                 {
-                    Sort sort = getTypeSort(context, ((CtFieldReference) reference).getType());
-                    write(reference, address, context.mkFreshConst("", sort));
+                    if (memoryMap.get(reference) != null)
+                    {
+                        Sort sort = getTypeSort(context, ((CtFieldReference) reference).getType());
+                        write(reference, address, context.mkFreshConst("", sort));
+                    }
                 }
             }
             else if (reference instanceof CtArrayTypeReference)

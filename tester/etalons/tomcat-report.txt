@@ -3,7 +3,6 @@ WARNING: Condition '(appContext == null)' is always true when reached (./project
 WARNING: Condition '(queryString != null)' is always true when reached (./projects/tomcat/java/org/apache/catalina/core/ApplicationPushBuilder.java:368)
 WARNING: Condition 'ok' is always true when reached (./projects/tomcat/java/org/apache/catalina/core/StandardContext.java:4666)
 WARNING: Condition '(periodicLifecycleEventFuture != null)' is always true when reached (./projects/tomcat/java/org/apache/catalina/core/StandardServer.java:949)
-WARNING: Condition '!isValid' is always false when reached (./projects/tomcat/java/org/apache/catalina/ha/session/DeltaSession.java:491)
 WARNING: Condition 'clazz != null' is always false when reached (./projects/tomcat/java/org/apache/catalina/loader/WebappClassLoaderBase.java:2332)
 WARNING: Condition '0 == histoInterval' is always false when reached (./projects/tomcat/java/org/apache/catalina/manager/ManagerServlet.java:1302)
 WARNING: Condition '!inside' is always true when reached (./projects/tomcat/java/org/apache/catalina/ssi/SSIProcessor.java:203)
