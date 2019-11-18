@@ -72,7 +72,7 @@ public final class CommonUtils
                     // Unboxing conversion
                     arrayIndex = memory.read(getActualType(index).unbox(), (IntExpr) arrayIndex);
                 }
-                targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) arrayRead.getTarget().getType(), targetValue, arrayIndex);
+                targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) getActualType(arrayRead.getTarget()), targetValue, arrayIndex);
             }
             else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)
             {
@@ -144,6 +144,11 @@ public final class CommonUtils
             return false;
         }
 
+        if (!returnedExpression.getTypeCasts().isEmpty())
+        {
+            return false;
+        }
+
         if (!method.getType().equals(returnedExpression.getType()))
         {
             return false;
@@ -205,6 +210,11 @@ public final class CommonUtils
         CtExpression<?> assigned = ((CtAssignment) statement).getAssigned();
 
         if (!(assigned instanceof CtFieldWrite))
+        {
+            return false;
+        }
+
+        if (!assigned.getTypeCasts().isEmpty())
         {
             return false;
         }

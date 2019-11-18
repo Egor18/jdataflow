@@ -363,4 +363,10 @@ public class TestCast
         Object tmp = ((Object[]) obj)[index];
         if (tmp == null) {} //ok
     }
+
+    void testArrayCast2(Object obj)
+    {
+        ((char[]) obj)[0] = 'a';
+        if (((char[]) obj)[0] == 'a') {} //@ALWAYS_TRUE
+    }
 }

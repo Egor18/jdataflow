@@ -43,7 +43,7 @@ public class ResetOnModificationScanner extends CtScanner
     public <T> void visitCtArrayWrite(CtArrayWrite<T> arrayWrite)
     {
         super.visitCtArrayWrite(arrayWrite);
-        CtArrayTypeReference<?> reference = (CtArrayTypeReference) arrayWrite.getTarget().getType();
+        CtArrayTypeReference<?> reference = (CtArrayTypeReference) getActualType(arrayWrite.getTarget());
         IntExpr targetExpr = getTargetValue(context, variablesMap, memory, arrayWrite.getTarget());
         BitVecExpr indexExpr = (BitVecExpr) context.mkFreshConst("", context.mkBitVecSort(32));
         if (targetExpr != null && indexExpr != null)

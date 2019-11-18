@@ -1664,7 +1664,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         CtReference leftReference;
         if (left instanceof CtArrayWrite)
         {
-            leftReference = ((CtArrayWrite<?>) left).getTarget().getType();
+            leftReference = getActualType(((CtArrayWrite<?>) left).getTarget());
         }
         else
         {
@@ -1762,7 +1762,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
             }
 
-            leftData = memory.readArray((CtArrayTypeReference) arrayWrite.getTarget().getType(), (IntExpr) leftValue, indexExpr);
+            leftData = memory.readArray((CtArrayTypeReference) getActualType(arrayWrite.getTarget()), (IntExpr) leftValue, indexExpr);
         }
 
         rightValue = calcBinaryOperator(leftData, leftType, rightValue, rightType, assignment.getKind());
@@ -2237,7 +2237,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                     indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
                 }
 
-                operandData = memory.readArray((CtArrayTypeReference) arrayWrite.getTarget().getType(), (IntExpr) operandValue, indexExpr);
+                operandData = memory.readArray((CtArrayTypeReference) getActualType(arrayWrite.getTarget()), (IntExpr) operandValue, indexExpr);
             }
 
             Expr literalValue = makeLiteral(1);
