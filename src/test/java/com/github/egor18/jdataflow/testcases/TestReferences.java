@@ -205,4 +205,21 @@ public class TestReferences
         m2.put("3", clazz3);
         m2.put("4", clazz4);
     }
+
+    class TestSegfault
+    {
+        private long value;
+
+        public void testSegfault(TestSegfault v)
+        {
+            long x = this.value;
+            long y = v.value;
+            long result = x + y;
+
+            if (((x ^ result) & (y ^ result)) < 0) //ok (no segfault)
+            {
+                throw new RuntimeException("error");
+            }
+        }
+    }
 }

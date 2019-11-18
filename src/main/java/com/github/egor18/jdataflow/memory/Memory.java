@@ -39,7 +39,7 @@ public class Memory
     {
         this.context = context;
         this.solver = solver;
-        thisPointer = context.mkIntConst("");
+        thisPointer = context.mkIntConst("this");
         solver.add(context.mkDistinct(thisPointer, nullPointer()));
     }
 
