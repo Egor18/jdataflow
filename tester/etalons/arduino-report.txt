@@ -1,0 +1,2 @@
+WARNING: Condition '(keyword != null)' is always true when reached (./projects/arduino/arduino-core/src/processing/app/helpers/StringReplacer.java:135)
+WARNING: Condition '(processing.app.BaseNoGui.packages != null)' is always true when reached (./projects/arduino/arduino-core/src/cc/arduino/packages/discoverers/NetworkDiscovery.java:114)

@@ -8,7 +8,7 @@ import time
 
 PROJECTS = {
     'jdataflow' : { # eat your own dog food, right?
-        'download' : ['git clone https://github.com/Egor18/jdataflow.git jdataflow', 'cd jdataflow && git checkout 46473f2'],
+        'download' : ['git clone https://github.com/Egor18/jdataflow.git jdataflow', 'cd jdataflow && git checkout 17eb683'],
         'build-system' : 'gradle',
         'build' : ['./gradlew clean assemble'],
     },
@@ -33,6 +33,19 @@ PROJECTS = {
         'exclude' : ['spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindPuzzlers.java'], # takes too long
     },
 
+    'kafka' : {
+        'download' : ['git clone https://github.com/apache/kafka.git kafka --depth 1 -b 2.4.0-rc0', 'cd kafka && gradle'],
+        'build-system' : 'gradle',
+        'build' : ['./gradlew clean assemble'],
+        'exclude' : ['clients/src/generated'],
+    },
+
+    'mockito' : {
+        'download' : ['git clone https://github.com/mockito/mockito.git mockito --depth 1 -b v3.1.10'],
+        'build-system' : 'gradle',
+        'build' : ['./gradlew clean assemble'],
+    },
+
     'tomcat' : {
         'download' : ['git clone https://github.com/apache/tomcat.git tomcat --depth 1 -b 9.0.26'],
         'build-system' : 'ant',
@@ -44,6 +57,13 @@ PROJECTS = {
             'java/org/apache/tomcat/util/descriptor/web/WebXml.java', # takes too long
             'java/org/apache/tomcat/util/json',
         ],
+    },
+
+    'arduino' : {
+        'download' : ['git clone https://github.com/arduino/Arduino.git arduino --depth 1 -b 1.8.10'],
+        'root' : 'arduino/arduino-core',
+        'build-system' : 'ant',
+        'build' : ['ant clean compile'],
     },
 
     'junit4' : {
@@ -162,6 +182,14 @@ PROJECTS = {
         'download' : ['git clone https://github.com/Bukkit/Bukkit.git bukkit --depth 1 -b 1.8.1-R4'],
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests'],
+    },
+
+    'h2' : {
+        'download' : ['git clone https://github.com/h2database/h2database.git h2 --depth 1 -b version-1.4.200'],
+        'root' : 'h2/h2',
+        'build-system' : 'maven',
+        'build' : ['mvn clean install -DskipTests'],
+        'exclude' : ['src/main/org/h2/command/Parser.java'], # takes too long
     },
 
     'algorithms' : {
