@@ -1,4 +1,3 @@
-WARNING: Condition 'buffer != null' is always false when reached (./projects/kafka/clients/src/main/java/org/apache/kafka/clients/producer/internals/RecordAccumulator.java:243)
 WARNING: Condition 'headers == null' is always false when reached (./projects/kafka/clients/src/main/java/org/apache/kafka/common/record/DefaultRecord.java:210)
 WARNING: Condition '(password != null)' is always true when reached (./projects/kafka/clients/src/main/java/org/apache/kafka/common/security/ssl/SslEngineBuilder.java:172)
 WARNING: Condition '(exists != null)' is always true when reached (./projects/kafka/clients/src/test/java/org/apache/kafka/common/security/oauthbearer/internals/unsecured/OAuthBearerValidationUtilsTest.java:47)

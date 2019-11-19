@@ -879,10 +879,11 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
     private void visitTryBranch(CtBlock<?> block)
     {
-        // Each variable in try block becomes ITE(freshCond, xTry, xBeforeTry)
-        BranchData thenBranchData = visitBranch(context.mkTrue(), block);
+        BranchData thenBranchData = visitBranch(makeFreshBool(context), block);
         BranchData elseBranchData = new BranchData(variablesMap, memory);
         mergeBranches(null, thenBranchData, elseBranchData);
+        ResetOnModificationScanner resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
+        resetScanner.scan(block);
     }
 
     private void visitCatchBranches(List<CtCatch> catchers)

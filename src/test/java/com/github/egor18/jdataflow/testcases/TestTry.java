@@ -228,10 +228,10 @@ public class TestTry
         if (b == 3) {}
         if (a == 4) {}
         if (b == 4) {}
-        if (a == 5) {} //@ALWAYS_FALSE
-        if (a == 5) {} //@ALWAYS_FALSE
-        if (a == 2 && b == 3) {} //@ALWAYS_FALSE
-        if (a == 3 && b == 4) {} //@ALWAYS_FALSE
+        if (a == 5) {}
+        if (a == 5) {}
+        if (a == 2 && b == 3) {}
+        if (a == 3 && b == 4) {}
     }
 
     void testTry11()
@@ -261,7 +261,7 @@ public class TestTry
         if (a == 2) {}
         if (b == 2) {}
         if (a == 2 && b == 3) {}
-        if (a == 4 && b == 3) {} //@ALWAYS_FALSE
+        if (a == 4 && b == 3) {}
         if (a == 4 && b == 2) {}
     }
 
@@ -302,9 +302,9 @@ public class TestTry
 
         if (a == 2 && b == 1) {} //ok
         if (a == 2 && b == 2) {} //ok
-        if (a == 3) {} //@ALWAYS_FALSE
-        if (a != 1 && a != 2) {} //@ALWAYS_FALSE
-        if (b != 1 && b != 2) {} //@ALWAYS_FALSE
+        if (a == 3) {}
+        if (a != 1 && a != 2) {}
+        if (b != 1 && b != 2) {}
     }
 
     void testTry14()
@@ -329,7 +329,60 @@ public class TestTry
             b = 8;
         }
 
-        if (a == 8 && b == 8) {} //@ALWAYS_FALSE
+        if (a == 8 && b == 8) {}
+    }
+
+    void testTry15(boolean cond)
+    {
+        Object buffer = null;
+        try
+        {
+            buffer = new Object();
+
+            if (cond)
+            {
+                throw new RuntimeException("");
+            }
+
+            buffer = null;
+            return;
+        }
+        finally
+        {
+            if (buffer != null) {} //ok
+        }
+    }
+
+    void testTry16()
+    {
+        int a = 0;
+        int b = 10;
+
+        try
+        {
+            unknownFunc();
+            a = 1;
+            unknownFunc();
+            a = 2;
+            unknownFunc();
+            a = 3;
+            unknownFunc();
+            a = 4;
+        }
+        catch (Exception e)
+        {
+            b = 12;
+        }
+
+        if (a == 0) {} //ok
+        if (a == 1) {} //ok
+        if (a == 2) {} //ok
+        if (a == 3) {} //ok
+        if (a == 4) {} //ok
+        if (a == 42) {}
+        if (b == 10) {} //ok
+        if (b == 12) {} //ok
+        if (b == 42) {} //@ALWAYS_FALSE
     }
 
     void testTryWithResource1(String path)
@@ -356,7 +409,7 @@ public class TestTry
         }
         if (a == 0) {}
         if (a == 5) {}
-        if (a == 55) {} //@ALWAYS_FALSE
+        if (a == 55) {}
         if (b == 55) {} //@ALWAYS_TRUE
         if (c == 55) {} //@ALWAYS_TRUE
     }

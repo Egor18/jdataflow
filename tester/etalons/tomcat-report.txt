@@ -20,7 +20,6 @@ WARNING: Condition 'checkexpired' is always true when reached (./projects/tomcat
 WARNING: Condition 'doRunReceiver' is always true when reached (./projects/tomcat/java/org/apache/catalina/tribes/membership/McastServiceImpl.java:554)
 WARNING: Condition 'doRunReceiver' is always true when reached (./projects/tomcat/java/org/apache/catalina/tribes/membership/McastServiceImpl.java:555)
 WARNING: Condition 'doRunReceiver' is always true when reached (./projects/tomcat/java/org/apache/catalina/tribes/membership/McastServiceImpl.java:556)
-WARNING: Condition '(entry.getBackupNodes() != null)' is always true when reached (./projects/tomcat/java/org/apache/catalina/tribes/tipis/AbstractReplicatedMap.java:497)
 WARNING: Condition 'result' is always false when reached (./projects/tomcat/java/org/apache/catalina/tribes/transport/bio/MultipointBioSender.java:153)
 WARNING: Condition 'seconds < first' is always true when reached (./projects/tomcat/java/org/apache/catalina/valves/AbstractAccessLogValve.java:317)
 WARNING: Condition 'colonsPos == (ipv6AddressLength - 2)' is always false when reached (./projects/tomcat/java/org/apache/tomcat/util/net/IPv6Utils.java:131)
