@@ -19,7 +19,7 @@ public class Memory
     private Map<CtReference, ArrayExpr> memoryMap = new HashMap<>();
 
     // Holds next free memory address
-    private int memoryCounter = 1;
+    private static int memoryCounter = 1;
 
     // z3 solver context
     private Context context;
@@ -48,7 +48,6 @@ public class Memory
         this.context = other.context;
         this.solver = other.solver;
         this.memoryMap = new HashMap<>(other.memoryMap);
-        this.memoryCounter = other.memoryCounter;
         this.thisPointer = other.thisPointer;
     }
 
@@ -200,6 +199,13 @@ public class Memory
     public void reset()
     {
         memoryMap.clear();
+    }
+
+    /**
+    * Resets static memory counter.
+    */
+    public static void resetMemoryCounter()
+    {
         memoryCounter = 1;
     }
 
