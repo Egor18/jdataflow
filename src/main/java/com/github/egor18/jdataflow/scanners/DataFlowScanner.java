@@ -374,27 +374,25 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     }
 
     /**
+     * Returns current conditions and abrupt termination flags.
+     */
+    private BoolExpr getState()
+    {
+        BoolExpr flags = context.mkAnd(
+            context.mkNot(getReturnExpr()),
+            context.mkNot(getBreakExpr()),
+            context.mkNot(getContinueExpr()),
+            context.mkNot(getThrowExpr())
+        );
+        return currentConditions == null ? flags : context.mkAnd(currentConditions, flags);
+    }
+
+    /**
      * Adds current conditions and abrupt termination flags to the solver.
      */
     private void applyState()
     {
-        // Apply current conditions
-        if (currentConditions != null)
-        {
-            solver.add(currentConditions);
-        }
-
-        // Apply information about exit points
-        solver.add(context.mkNot(getReturnExpr()));
-
-        // Apply information about breaks
-        solver.add(context.mkNot(getBreakExpr()));
-
-        // Apply information about continues
-        solver.add(context.mkNot(getContinueExpr()));
-
-        // Apply information about throws
-        solver.add(context.mkNot(getThrowExpr()));
+        solver.add(getState());
     }
 
     /**
@@ -568,6 +566,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             resetScanner.scan(loopCondition);
             Arrays.stream(loopBody).forEach(resetScanner::scan);
             iterationBranchData = visitBranch(context.mkTrue(), loopBody);
+            resetScanner = new ResetOnModificationScanner(context, variablesMap, memory);
+            resetScanner.scan(loopCondition);
+            Arrays.stream(loopBody).forEach(resetScanner::scan);
             iterationConditionExpr = loopCondition == null ? makeFreshBool(context) : visitCondition(loopCondition);
         }
 
@@ -591,7 +592,8 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         variablesMap.put(continueFlagReference, oldContinueExpr);
 
         // Invert loop condition
-        solver.add(context.mkOr(context.mkNot(iterationConditionExpr), currentBreakExpr, currentReturnExpr, currentThrowExpr));
+        BoolExpr notLoopConditionExpr = context.mkOr(context.mkNot(iterationConditionExpr), currentBreakExpr, currentReturnExpr, currentThrowExpr);
+        solver.add(context.mkImplies(getState(), notLoopConditionExpr));
     }
 
     @Override
@@ -1065,7 +1067,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         if (targetExpr != null)
         {
             BoolExpr notNullExpr = context.mkDistinct(targetExpr, memory.nullPointer());
-            currentConditions = currentConditions == null ? notNullExpr : context.mkAnd(currentConditions, notNullExpr);
+            solver.add(context.mkImplies(getState(), notNullExpr));
         }
     }
 

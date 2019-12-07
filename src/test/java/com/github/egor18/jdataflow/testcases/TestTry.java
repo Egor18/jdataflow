@@ -99,7 +99,7 @@ public class TestTry
         {
             if (true) {} //@ALWAYS_TRUE
             if (false) {} //@ALWAYS_FALSE
-            if (cond) {} //@ALWAYS_TRUE
+            if (cond) {}
         }
     }
 
@@ -147,7 +147,7 @@ public class TestTry
         {
             if (true) {} //@ALWAYS_TRUE
             if (false) {} //@ALWAYS_FALSE
-            if (cond) {} //@ALWAYS_TRUE
+            if (cond) {}
         }
     }
 
@@ -171,7 +171,7 @@ public class TestTry
         }
         finally
         {
-            if (interrupted) {} //unreachable //@ALWAYS_FALSE
+            if (interrupted) {}
         }
     }
 

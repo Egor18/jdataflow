@@ -43,7 +43,7 @@ public class TestNullDereference
 
     void testNullDereference7(C1 a)
     {
-        if (a == null && a.x == 0) {} //@NULL_DEREFERENCE
+        if (a == null && a.x == 0) {} //@NULL_DEREFERENCE //@ALWAYS_FALSE
     }
 
     void testNullDereference8()

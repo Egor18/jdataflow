@@ -192,7 +192,7 @@ public class TestInterprocedural
     void testThrow4(boolean cond)
     {
         throwException();
-        if (cond) {} //TODO: warn about unreachable code (new checker)
+        if (cond) {} //@ALWAYS_FALSE
     }
 
     void testThrow5(boolean cond, boolean x)

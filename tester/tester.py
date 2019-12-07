@@ -17,7 +17,7 @@ PROJECTS = {
         'download' : ['git clone https://github.com/spring-projects/spring-framework.git spring-framework --depth 1 -b v5.2.0.RC2'],
         'build-system' : 'gradle',
         'build' : ['./gradlew clean assemble'],
-        'exclude' : ['spring-core/src/main/java/org/springframework/asm'], # takes too long
+        'exclude' : ['spring-core/src/main/java/org/springframework/asm'],
     },
 
     'terasology' : {
@@ -30,7 +30,10 @@ PROJECTS = {
         'download' : ['git clone https://github.com/spotbugs/spotbugs.git spotbugs --depth 1 -b 4.0.0_beta3'],
         'build-system' : 'gradle',
         'build' : ['./gradlew clean assemble'],
-        'exclude' : ['spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindPuzzlers.java'], # takes too long
+        'exclude' : [
+            'spotbugs/src/main/java/edu/umd/cs/findbugs/detect/FindPuzzlers.java',
+            'spotbugs/src/main/java/edu/umd/cs/findbugs/detect/DumbMethods.java',
+        ],
     },
 
     'kafka' : {
@@ -53,8 +56,8 @@ PROJECTS = {
         'exclude' : [
             'java/org/apache/coyote/http2/HPackHuffman.java',
             'java/org/apache/el/parser',
-            'java/org/apache/tomcat/util/http/parser/HttpParser.java', # takes too long
-            'java/org/apache/tomcat/util/descriptor/web/WebXml.java', # takes too long
+            'java/org/apache/tomcat/util/http/parser/HttpParser.java',
+            'java/org/apache/tomcat/util/descriptor/web/WebXml.java',
             'java/org/apache/tomcat/util/json',
         ],
     },
@@ -88,6 +91,7 @@ PROJECTS = {
         'download' : ['git clone https://github.com/google/error-prone.git error-prone --depth 1 -b v2.3.3'],
         'build-system' : 'maven',
         'build' : ['mvn clean compile -DskipTests'],
+        'exclude' : ['check_api/src/main/java/com/google/errorprone/scanner/ErrorProneScanner.java'],
     },
 
     'checkstyle' : {
@@ -169,7 +173,7 @@ PROJECTS = {
         'download' : ['git clone https://github.com/INRIA/spoon.git spoon --depth 1 -b spoon-core-7.5.0'],
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests -Dcheckstyle.skip'],
-        'exclude' : ['src/test/java/spoon/test/api/Metamodel.java'], # takes too long
+        'exclude' : ['src/test/java/spoon/test/api/Metamodel.java'],
     },
 
     'gson' : {
@@ -189,7 +193,7 @@ PROJECTS = {
         'root' : 'h2/h2',
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests'],
-        'exclude' : ['src/main/org/h2/command/Parser.java'], # takes too long
+        'exclude' : ['src/main/org/h2/command/Parser.java'],
     },
 
     'algorithms' : {

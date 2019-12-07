@@ -35,4 +35,28 @@ public class TestDereference
         int a = arr[0];
         if (arr == null) {} //@ALWAYS_FALSE
     }
+
+    String testDereference6(String s)
+    {
+        return s == null ? s : s.replace('\r', ' ').replace('\n', ' '); //ok
+    }
+
+    void testDereference7(Object x, boolean cond)
+    {
+        if (cond)
+        {
+            int z = x.hashCode();
+        }
+
+        if (cond)
+        {
+            if (x == null) {} //@ALWAYS_FALSE
+        }
+    }
+
+    void testDereference8(Object x)
+    {
+        if (x == null || x.hashCode() == 10) {} //ok
+        if (x == null) {} //ok
+    }
 }

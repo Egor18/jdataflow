@@ -674,6 +674,40 @@ public class TestLoops
         }
     }
 
+    void testWhile44(boolean cond, boolean c)
+    {
+        if (c)
+        {
+            while (cond) {}
+        }
+        if (cond) {} //ok
+    }
+
+    String testWhile45(Class<?> c, boolean varArg, String s)
+    {
+        if (varArg) //ok
+        {
+            c = c.getComponentType();
+        }
+
+        while (true) //ok
+        {
+            c = c.getEnclosingClass();
+            if (c == null) //ok
+            {
+                break;
+            }
+            s = c.getSimpleName() + "." + s;
+        }
+
+        if (varArg) //ok
+        {
+            return s + "...";
+        }
+
+        return s;
+    }
+
     void testDo1(int i)
     {
         do
@@ -780,6 +814,16 @@ public class TestLoops
         {
         }
         while (i++ < count); //ok
+    }
+
+    class C { C next; }
+    void testDo11(C c)
+    {
+        do
+        {
+            c = c.next;
+        }
+        while (c != null); //ok
     }
 
     void testFor1()

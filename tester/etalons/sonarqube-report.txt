@@ -1,1 +1,2 @@
 WARNING: Condition 'c == 0' is always true when reached (./projects/sonarqube/sonar-duplications/src/main/java/org/sonar/duplications/detector/original/BlocksGroup.java:113)
+WARNING: Condition 'notImplemented()' is always false when reached (./projects/sonarqube/server/sonar-server/src/main/java/org/sonar/server/computation/task/projectanalysis/scm/ScmInfoRepositoryImpl.java:107)
