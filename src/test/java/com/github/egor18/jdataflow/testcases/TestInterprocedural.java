@@ -2,15 +2,6 @@ package com.github.egor18.jdataflow.testcases;
 
 public class TestInterprocedural
 {
-    void testManualSummary1(Object o)
-    {
-        if (20 == Math.max(10, 20)) {} //@ALWAYS_TRUE
-        if (10 == Math.min(10, 20)) {} //@ALWAYS_TRUE
-        if (10 == Math.abs(10)) {} //@ALWAYS_TRUE
-        if (10 == Math.abs(-10)) {} //@ALWAYS_TRUE
-        if (o.equals(o)) {} //@ALWAYS_TRUE
-    }
-
     private int f1(int x)
     {
         return x + 1;

@@ -50,7 +50,31 @@ public class ManualSummaries
             })
         );
 
+        add("java.lang.Math", "max(long,long)", new FunctionSummary()
+            .pure()
+            .setReturn((target, args) ->
+            {
+                return context.mkITE(
+                        context.mkBVSGT((BitVecExpr) args[0], (BitVecExpr) args[1]),
+                        args[0],
+                        args[1]
+                );
+            })
+        );
+
         add("java.lang.Math", "min(int,int)", new FunctionSummary()
+            .pure()
+            .setReturn((target, args) ->
+            {
+                return context.mkITE(
+                        context.mkBVSGT((BitVecExpr) args[0], (BitVecExpr) args[1]),
+                        args[1],
+                        args[0]
+                );
+            })
+        );
+
+        add("java.lang.Math", "min(long,long)", new FunctionSummary()
             .pure()
             .setReturn((target, args) ->
             {
@@ -68,6 +92,18 @@ public class ManualSummaries
             {
                 return context.mkITE(
                         context.mkBVSLT((BitVecExpr) args[0], context.mkBV(0, 32)),
+                        context.mkBVNeg((BitVecExpr) args[0]),
+                        args[0]
+                );
+            })
+        );
+
+        add("java.lang.Math", "abs(long)", new FunctionSummary()
+            .pure()
+            .setReturn((target, args) ->
+            {
+                return context.mkITE(
+                        context.mkBVSLT((BitVecExpr) args[0], context.mkBV(0, 64)),
                         context.mkBVNeg((BitVecExpr) args[0]),
                         args[0]
                 );

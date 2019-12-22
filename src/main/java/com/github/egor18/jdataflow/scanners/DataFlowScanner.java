@@ -1151,6 +1151,15 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 }
             }
             summary = functionSummariesTable.get(signature);
+
+            // Special case for 'equals'
+            if (summary == null
+                && executable.getSimpleName().equals("equals")
+                && executable.getParameters().size() == 1
+                && !executable.getParameters().get(0).isPrimitive())
+            {
+                summary = functionSummariesTable.get("java.lang.Object.equals(java.lang.Object)");
+            }
         }
 
         if (summary == null || !summary.isPure())
@@ -1829,7 +1838,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtSuperAccess(CtSuperAccess<T> superAccess)
     {
-        Expr superValue = memory.thisPointer();
+        Expr superValue = memory.superPointer();
         currentResult = applyCasts(superValue, superAccess.getType(), superAccess.getTypeCasts());
         superAccess.putMetadata("value", currentResult);
     }

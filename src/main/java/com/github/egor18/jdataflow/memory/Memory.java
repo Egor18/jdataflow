@@ -30,6 +30,8 @@ public class Memory
     // Represents a pointer to 'this'
     private IntExpr thisPointer;
 
+    private IntExpr superPointer;
+
     public Map<CtReference, ArrayExpr> getMemoryMap()
     {
         return memoryMap;
@@ -39,7 +41,8 @@ public class Memory
     {
         this.context = context;
         this.solver = solver;
-        thisPointer = context.mkIntConst("this");
+        this.thisPointer = context.mkIntConst("this");
+        this.superPointer = context.mkIntConst("super");
         solver.add(context.mkDistinct(thisPointer, nullPointer()));
     }
 
@@ -49,6 +52,7 @@ public class Memory
         this.solver = other.solver;
         this.memoryMap = new HashMap<>(other.memoryMap);
         this.thisPointer = other.thisPointer;
+        this.superPointer = other.superPointer;
     }
 
     /**
@@ -146,6 +150,14 @@ public class Memory
     public IntExpr thisPointer()
     {
         return thisPointer;
+    }
+
+    /**
+     * Returns super pointer.
+     */
+    public IntExpr superPointer()
+    {
+        return superPointer;
     }
 
     /**
