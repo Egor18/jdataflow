@@ -43,12 +43,6 @@ PROJECTS = {
         'exclude' : ['clients/src/generated'],
     },
 
-    'mockito' : {
-        'download' : ['git clone https://github.com/mockito/mockito.git mockito --depth 1 -b v3.1.10'],
-        'build-system' : 'gradle',
-        'build' : ['./gradlew clean assemble'],
-    },
-
     'tomcat' : {
         'download' : ['git clone https://github.com/apache/tomcat.git tomcat --depth 1 -b 9.0.26'],
         'build-system' : 'ant',
