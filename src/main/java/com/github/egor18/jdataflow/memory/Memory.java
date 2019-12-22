@@ -30,6 +30,7 @@ public class Memory
     // Represents a pointer to 'this'
     private IntExpr thisPointer;
 
+    // Represents a pointer to 'super'
     private IntExpr superPointer;
 
     public Map<CtReference, ArrayExpr> getMemoryMap()
