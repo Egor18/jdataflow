@@ -1,3 +1,4 @@
+WARNING: Array index '0' is out of bounds (./projects/spoon/src/test/java/spoon/test/arrays/testclasses/ArrayClass.java:14)
 WARNING: Condition '0' is always false when reached (./projects/spoon/src/test/java/spoon/test/comment/testclasses/BlockComment.java:33)
 WARNING: Condition '1' is always true when reached (./projects/spoon/src/test/java/spoon/test/comment/testclasses/BlockComment.java:35)
 WARNING: Condition '(1 % 2) == 0' is always false when reached (./projects/spoon/src/test/java/spoon/test/comment/testclasses/BlockComment.java:46)
@@ -41,6 +42,7 @@ WARNING: Condition 'x != 0' is always false when reached (./projects/spoon/src/t
 WARNING: Condition 'x > (1 - 2)' is always true when reached (./projects/spoon/src/test/java/spoon/test/eval/testclasses/Foo.java:22)
 WARNING: Condition '(1 - 4) < 0' is always true when reached (./projects/spoon/src/test/java/spoon/test/eval/testclasses/Foo.java:26)
 WARNING: Condition '(spoon.test.eval.testclasses.ToEvaluate.I1 + 1) != 11' is always false when reached (./projects/spoon/src/test/java/spoon/test/eval/testclasses/ToEvaluate.java:32)
+WARNING: Array index '0' is out of bounds (./projects/spoon/src/test/java/spoon/test/fieldaccesses/testclasses/Panini.java:26)
 WARNING: Condition '0 == 1' is always false when reached (./projects/spoon/src/test/java/spoon/test/filters/testclasses/Foo.java:15)
 WARNING: Condition '3 < 4' is always true when reached (./projects/spoon/src/test/java/spoon/test/filters/testclasses/FooLine.java:26)
 WARNING: Condition '3 < 4' is always true when reached (./projects/spoon/src/test/java/spoon/test/filters/testclasses/FooLine.java:32)

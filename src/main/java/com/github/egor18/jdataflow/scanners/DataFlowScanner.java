@@ -997,7 +997,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     /**
      * Returns artificial reference to array.length field
      */
-    private CtTypeReference getArrayLengthFieldReference()
+    public CtTypeReference getArrayLengthFieldReference()
     {
         return factory.createTypeReference().setSimpleName("#ARRAY_LENGTH");
     }

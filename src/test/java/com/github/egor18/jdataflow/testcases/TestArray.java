@@ -537,4 +537,56 @@ public class TestArray
         double[] arr = new double[10];
         arr[getIndex()] += 1;
     }
+
+    void testArrayIndexOutOfBounds1()
+    {
+        byte[] arr = new byte[] {1, 2, 4, 8, 16, 32};
+        byte a1 = arr[9]; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        byte a2 = arr[6]; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        byte a3 = arr[(int)5L]; //ok
+        byte a4 = arr[0]; //ok
+        byte a5 = arr[-1]; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        byte a6 = arr[-5]; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+    }
+
+    void testArrayIndexOutOfBounds2()
+    {
+        byte[] arr = new byte[] {1, 2, 4, 8, 16, 32};
+        arr[9] = 42; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        arr[6] = 42; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        arr[(int)5L] = 42; //ok
+        arr[0] = 42; //ok
+        arr[-1] = 42; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        arr[-5] = 42; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+    }
+
+    void testArrayIndexOutOfBounds3()
+    {
+        byte[] arr = new byte[] {1, 2, 4, 8, 16, 32};
+        Integer i1 = new Integer(3);
+        Integer i2 = new Integer(10);
+        arr[i1] = 42; //ok
+        arr[i2] = 42; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+    }
+
+    void testArrayIndexOutOfBounds4(int[] arr)
+    {
+        if (arr.length < 10)
+        {
+            int a1 = arr[10]; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+        }
+    }
+
+    void testArrayIndexOutOfBounds5(int[] arr, int i)
+    {
+        int a1 = arr[i]; //ok
+        arr[-1] = 42; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+    }
+
+    void testArrayIndexOutOfBounds6()
+    {
+        int[] arr = {0, 0, 0, 0};
+        byte i = 8;
+        arr[i] = 4; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
+    }
 }

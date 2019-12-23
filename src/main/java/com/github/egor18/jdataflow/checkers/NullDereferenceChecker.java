@@ -1,6 +1,5 @@
 package com.github.egor18.jdataflow.checkers;
 
-import com.github.egor18.jdataflow.memory.Memory;
 import com.github.egor18.jdataflow.misc.ConditionStatus;
 import com.github.egor18.jdataflow.scanners.CheckersScanner;
 import com.github.egor18.jdataflow.warning.Warning;
@@ -29,8 +28,8 @@ public class NullDereferenceChecker extends AbstractChecker
             Expr targetExpr = (Expr) target.getMetadata("value");
             if (targetExpr != null)
             {
-                ConditionStatus alwaysNull = checkCond(getContext().mkEq(targetExpr, getMemory().nullPointer()));
-                if (alwaysNull == ConditionStatus.ALWAYS_TRUE)
+                ConditionStatus isNull = checkCond(getContext().mkEq(targetExpr, getMemory().nullPointer()));
+                if (isNull == ConditionStatus.ALWAYS_TRUE)
                 {
                     addWarning(new Warning(targetedExpression, WarningKind.NULL_DEREFERENCE));
                 }
