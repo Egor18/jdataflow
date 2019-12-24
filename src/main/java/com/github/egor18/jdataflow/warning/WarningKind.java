@@ -8,6 +8,7 @@ public enum WarningKind
     ALWAYS_FALSE("Condition '%s' is always false when reached"),
     NULL_DEREFERENCE("Null dereference occurs in the '%s' expression"),
     ARRAY_INDEX_IS_OUT_OF_BOUNDS("Array index '%s' is out of bounds"),
+    RESULT_IGNORED("Result of '%s' is ignored"),
     ;
 
     String message;

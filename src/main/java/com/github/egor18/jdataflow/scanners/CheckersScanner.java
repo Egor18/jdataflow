@@ -1,10 +1,7 @@
 package com.github.egor18.jdataflow.scanners;
 
 import com.github.egor18.jdataflow.Configuration;
-import com.github.egor18.jdataflow.checkers.AbstractChecker;
-import com.github.egor18.jdataflow.checkers.AlwaysTrueFalseChecker;
-import com.github.egor18.jdataflow.checkers.ArrayIndexChecker;
-import com.github.egor18.jdataflow.checkers.NullDereferenceChecker;
+import com.github.egor18.jdataflow.checkers.*;
 import com.github.egor18.jdataflow.exceptions.JDataFlowException;
 import com.github.egor18.jdataflow.exceptions.JDataFlowTimeoutException;
 import com.github.egor18.jdataflow.warning.Warning;
@@ -39,6 +36,7 @@ public class CheckersScanner extends DataFlowScanner
         checkers.add(new AlwaysTrueFalseChecker(this));
         checkers.add(new NullDereferenceChecker(this));
         checkers.add(new ArrayIndexChecker(this));
+        checkers.add(new ResultIgnoredChecker(this));
     }
 
     @Override

@@ -1,0 +1,1 @@
+WARNING: Result of 'a.equals(b)' is ignored (./projects/junit4/src/test/java/org/junit/tests/ObjectContractTest.java:28)

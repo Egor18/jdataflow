@@ -157,6 +157,11 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         variablesMap.put(throwFlagReference, value);
     }
 
+    public FunctionSummary getFunctionSummary(String fullSignature)
+    {
+        return functionSummariesTable.get(fullSignature);
+    }
+
     public Context getContext()
     {
         return context;
