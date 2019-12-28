@@ -58,6 +58,8 @@ Note that you may still need to set up environment variables or java.lang.path i
 Now you can go to the build directory and run the resulting jar:    
 `java -jar jdataflow.jar --sources <args...> [--classpath <arg>] [--classpath-file <arg>]`
 
+If you want to check your Ant, Maven, or Gradle based project with jdataflow, you should use [scan utils](https://github.com/Egor18/jdataflow/tree/master/scan).
+
 ## Under the hood
 ### AST
 jdataflow uses Spoon library to build and traverse AST in a post-order manner.
