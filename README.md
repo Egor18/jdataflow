@@ -5,7 +5,7 @@
 jdataflow is a Z3 solver based data-flow analyzer for Java source code.
 
 ## Capabilities
-At the moment jdataflow has checkers which allow to detect logical errors (always true/false expressions) and null pointer dereferences.   
+At the moment jdataflow has checkers which allow to detect logical errors (always true/false expressions), null pointer dereferences, array indices out of bounds, etc.   
 For example:
 ```java
 void f(boolean c) {
@@ -27,6 +27,11 @@ void h(Something x) {
     if (x == null) {
         x.f(); // <= null dereference
     }
+}
+
+void z() {
+    int[] arr = new int[] {1, 2, 4, 8, 16, 32};
+    int x = arr[9]; // <= array index out of bounds
 }
 ```
 Check out test directory for more examples.
@@ -110,7 +115,7 @@ But in general, any unknown function resets the values of its arguments.
 
 ### Loops
 The most obvious approach to deal with loops is to unroll them. Unfortunately, we can do it only when the number of iterations is known statically and relatively small.   
-So in general, we have to find loop invariants and reset everything else, like for the functions.   
+So in general, we have to find loop invariants and reset everything else, like for the unknown functions.   
 However, some special cases could be treated differently.
 
 ### Memory model
@@ -133,6 +138,8 @@ Here are some useful links with a more detailed explanation of different memory 
 
 ## To Do list
 At the moment this project is just a proof of concept, so there is a lot of work to do:
-- Interprocedural analysis and Function Summaries;
-- Parallel analysis and classes dependency graph;
+- Better Interprocedural analysis and Function Summaries;
 - Better loop analysis;
+- Parallel analysis;
+- Analyze strings (z3str has performance limitations though);
+- Detecting **potential** null dereferences an **potential** OOB;
