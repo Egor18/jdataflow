@@ -143,4 +143,4 @@ At the moment this project is just a proof of concept, so there is a lot of work
 - Better loop analysis;
 - Parallel analysis;
 - Analyze strings (z3str has performance limitations though);
-- Detecting **potential** null dereferences an **potential** OOB;
+- Detecting **potential** null dereferences and **potential** OOB;
