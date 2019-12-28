@@ -5,7 +5,8 @@
 jdataflow is a Z3 solver based data-flow analyzer for Java source code.
 
 ## Capabilities
-At the moment jdataflow has checkers which allow to detect logical errors (always true/false expressions), null pointer dereferences, array indices out of bounds, etc.   
+At the moment jdataflow has checkers which allow to detect logical errors (always true/false expressions), null pointer dereferences, array indices out of bounds, etc.
+
 For example:
 ```java
 void f(boolean c) {
