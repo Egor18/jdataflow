@@ -5,17 +5,13 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
 import spoon.reflect.code.*;
+import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.reference.CtArrayTypeReference;
-import spoon.reflect.reference.CtFieldReference;
-import spoon.reflect.reference.CtReference;
-import spoon.reflect.reference.CtTypeReference;
+import spoon.reflect.declaration.CtParameter;
+import spoon.reflect.reference.*;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayDeque;
-import java.util.Date;
-import java.util.Deque;
-import java.util.Map;
+import java.util.*;
 
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
 import static com.github.egor18.jdataflow.utils.TypeUtils.makeFreshInt;
@@ -248,5 +244,37 @@ public final class CommonUtils
     public static void println(String str)
     {
         System.out.println(getTimeStamp() + " " + str);
+    }
+
+    public static boolean isEllipsisFunction(CtExecutableReference<?> executable)
+    {
+        List<CtTypeReference<?>> parameters = executable.getParameters();
+        if (parameters.isEmpty())
+        {
+            return false;
+        }
+
+        if (!(parameters.get(parameters.size() - 1) instanceof CtArrayTypeReference))
+        {
+            return false;
+        }
+
+        CtExecutable<?> executableDeclaration;
+        try
+        {
+            executableDeclaration = executable.getDeclaration();
+        }
+        catch (Exception e)
+        {
+            executableDeclaration = null;
+        }
+
+        if (executableDeclaration == null)
+        {
+            return false;
+        }
+
+        List<CtParameter<?>> declaredParameters = executableDeclaration.getParameters();
+        return declaredParameters.get(declaredParameters.size() - 1).isVarArgs();
     }
 }

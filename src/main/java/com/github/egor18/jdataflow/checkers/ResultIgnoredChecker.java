@@ -7,10 +7,6 @@ import com.github.egor18.jdataflow.warning.WarningKind;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.declaration.CtElement;
-import spoon.reflect.reference.CtExecutableReference;
-import spoon.reflect.reference.CtTypeReference;
-
-import static com.github.egor18.jdataflow.utils.SummaryUtils.getFullSignature;
 import static com.github.egor18.jdataflow.utils.TypeUtils.isVoid;
 
 /**
@@ -39,15 +35,7 @@ public class ResultIgnoredChecker extends AbstractChecker
             return;
         }
 
-        CtExecutableReference<?> executable = invocation.getExecutable();
-        CtTypeReference<?> declaringType = executable.getDeclaringType();
-        if (declaringType == null)
-        {
-            return;
-        }
-
-        String fullSignature = getFullSignature(declaringType, executable);
-        FunctionSummary functionSummary = getScanner().getFunctionSummary(fullSignature);
+        FunctionSummary functionSummary = getScanner().getFunctionSummary(invocation);
         if (functionSummary == null)
         {
             return;

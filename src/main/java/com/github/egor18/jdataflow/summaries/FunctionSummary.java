@@ -1,8 +1,8 @@
 package com.github.egor18.jdataflow.summaries;
 
 import com.github.egor18.jdataflow.summaries.interfaces.EffectFunction;
+import com.github.egor18.jdataflow.summaries.interfaces.PredicateFunction;
 import com.github.egor18.jdataflow.summaries.interfaces.ReturnFunction;
-import com.github.egor18.jdataflow.summaries.interfaces.ThrowEffectFunction;
 import com.microsoft.z3.FuncDecl;
 
 import java.util.ArrayList;
@@ -33,6 +33,9 @@ public class FunctionSummary
 
     // Whether target is read-only (non-modifiable)
     private boolean isReadOnlyTarget;
+
+    // Conditions on which this function produces NullPointerException
+    private List<PredicateFunction> nullDereferenceConditions = new ArrayList<>();
 
     public ReturnFunction getReturnFunc()
     {
@@ -96,11 +99,6 @@ public class FunctionSummary
         return this;
     }
 
-    public FunctionSummary addThrowEffect(ThrowEffectFunction effectFunction)
-    {
-        return addEffect(effectFunction);
-    }
-
     public List<EffectFunction> getEffects()
     {
         return effectFunctions;
@@ -136,5 +134,16 @@ public class FunctionSummary
     {
         isReadOnlyTarget = true;
         return this;
+    }
+
+    public FunctionSummary addNullDereferenceCondition(PredicateFunction condition)
+    {
+        nullDereferenceConditions.add(condition);
+        return this;
+    }
+
+    public List<PredicateFunction> getNullDereferenceConditions()
+    {
+        return nullDereferenceConditions;
     }
 }

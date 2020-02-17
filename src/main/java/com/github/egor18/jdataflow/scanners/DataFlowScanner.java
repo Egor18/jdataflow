@@ -7,10 +7,10 @@ import com.github.egor18.jdataflow.memory.Memory;
 import com.github.egor18.jdataflow.misc.BranchData;
 import com.github.egor18.jdataflow.misc.ConditionStatus;
 import com.github.egor18.jdataflow.misc.FlagReference;
+import com.github.egor18.jdataflow.summaries.InterproceduralAnalyzer;
 import com.github.egor18.jdataflow.summaries.interfaces.EffectFunction;
 import com.github.egor18.jdataflow.summaries.FunctionSummary;
 import com.github.egor18.jdataflow.summaries.ManualSummaries;
-import com.github.egor18.jdataflow.summaries.interfaces.ThrowEffectFunction;
 import com.github.egor18.jdataflow.utils.CommonUtils;
 import com.github.egor18.jdataflow.utils.TypeUtils;
 import com.microsoft.z3.*;
@@ -103,6 +103,12 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     // Timestamp of the current class member analysis start (used for timeout detection)
     private long currentMemberAnalysisStartTime = 0;
 
+    // Current invocation being analyzed (used for interprocedural analysis)
+    private CtInvocation<?> currentInvocation;
+
+    // Infers various facts for function summaries from source code
+    private InterproceduralAnalyzer interproceduralAnalyzer;
+
     public DataFlowScanner(Factory factory, Configuration config)
     {
         this.factory = factory;
@@ -115,6 +121,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         this.memory = new Memory(context, solver);
         this.config = config;
         this.functionSummariesTable = new ManualSummaries(this).getTable();
+        interproceduralAnalyzer = new InterproceduralAnalyzer(this);
     }
 
     public BoolExpr getReturnExpr()
@@ -162,6 +169,27 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         return functionSummariesTable.get(fullSignature);
     }
 
+    public FunctionSummary getFunctionSummary(CtExecutableReference<?> executable)
+    {
+        CtTypeReference<?> declaringType = executable.getDeclaringType();
+        if (declaringType == null)
+        {
+            return null;
+        }
+        String fullSignature = getFullSignature(declaringType, executable);
+        return getFunctionSummary(fullSignature);
+    }
+
+    public FunctionSummary getFunctionSummary(CtInvocation<?> invocation)
+    {
+        CtExecutableReference<?> executable = invocation.getExecutable();
+        if (executable == null)
+        {
+            return null;
+        }
+        return getFunctionSummary(executable);
+    }
+
     public Context getContext()
     {
         return context;
@@ -175,6 +203,21 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     public Memory getMemory()
     {
         return memory;
+    }
+
+    public FunctionSummary getCurrentFunctionSummary()
+    {
+        return currentFunctionSummary;
+    }
+
+    public BoolExpr getCurrentConditions()
+    {
+        return currentConditions;
+    }
+
+    public CtInvocation<?> getCurrentInvocation()
+    {
+        return currentInvocation;
     }
 
     public boolean isInsideLoopEntryCondition()
@@ -353,6 +396,24 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     }
 
     /**
+     * Casts arguments to the according formal parameters' types and returns the resulting values.
+     */
+    public List<Expr> getActualArgumentsValues(List<CtExpression<?>> arguments, List<CtTypeReference<?>> formalParameters)
+    {
+        List<Expr> argumentsValues = new ArrayList<>();
+        for (int i = 0; i < arguments.size(); i++)
+        {
+            CtExpression<?> argument = arguments.get(i);
+            CtTypeReference<?> argActualType = getActualType(argument);
+            CtTypeReference<?> argFormalType = formalParameters.get(i);
+            Expr argExpr = (Expr) argument.getMetadata("value");
+            argExpr = applyCasts(argExpr, argActualType, Collections.singletonList(argFormalType));
+            argumentsValues.add(argExpr);
+        }
+        return argumentsValues;
+    }
+
+    /**
      * Applies boxing operation to the expression, returns resulting expression.
      */
     private Expr box(Expr expr, CtTypeReference<?> type)
@@ -381,7 +442,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     /**
      * Returns current conditions and abrupt termination flags.
      */
-    private BoolExpr getState()
+    public BoolExpr getState()
     {
         BoolExpr flags = context.mkAnd(
             context.mkNot(getReturnExpr()),
@@ -456,77 +517,6 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         if (currentFunctionSummary != null)
         {
             currentFunctionSummary.setPure(false);
-        }
-    }
-
-    /**
-     * Returns true if the expression depends only on current method's parameters.
-     */
-    private boolean isParametersOnlyDependant(Expr expr, CtExecutable<?> parentExecutable)
-    {
-        // TODO: Do not walk through too large expressions
-        Expr[] args = expr.getArgs();
-        if (args.length != 0)
-        {
-            for (Expr arg : args)
-            {
-                if (!isParametersOnlyDependant(arg, parentExecutable))
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            if (expr.isNumeral())
-            {
-                return true;
-            }
-            if (expr.isConst())
-            {
-                return parentExecutable.getParameters().stream()
-                                                       .anyMatch(p -> expr.equals(variablesMap.get(p.getReference())));
-            }
-            return false;
-        }
-        return true;
-    }
-
-    private void inferThrowEffect(CtElement throwingElement)
-    {
-        if (currentFunctionSummary == null)
-        {
-            return;
-        }
-
-        if (throwingElement.getParent(CtTry.class) != null || throwingElement.getParent(CtLoop.class) != null)
-        {
-            return;
-        }
-
-        CtExecutable<?> parentExecutable = throwingElement.getParent(CtExecutable.class);
-        if (parentExecutable == null || parentExecutable instanceof CtLambda)
-        {
-            return;
-        }
-
-        BoolExpr conditionsExpr = currentConditions == null ? context.mkTrue() : currentConditions;
-        BoolExpr returnExpr = getReturnExpr();
-        if (isParametersOnlyDependant(conditionsExpr, parentExecutable) && isParametersOnlyDependant(returnExpr, parentExecutable))
-        {
-            List<CtParameter<?>> parameters = parentExecutable.getParameters();
-            Expr[] params = parameters.stream().map(p -> variablesMap.get(p.getReference())).toArray(Expr[]::new);
-            final BoolExpr currentMethodConditions = conditionsExpr;
-            final BoolExpr currentMethodReturnExpr = returnExpr;
-            final BoolExpr currentMethodThrowExpr = getThrowExpr();
-            currentFunctionSummary.addThrowEffect((target, args) ->
-            {
-                BoolExpr throwConditionExpr = (BoolExpr) currentMethodConditions.substitute(params, args);
-                BoolExpr returnConditionExpr = (BoolExpr) currentMethodReturnExpr.substitute(params, args);
-                BoolExpr throwExpr = (BoolExpr) currentMethodThrowExpr.substitute(params, args);
-                BoolExpr condExpr = context.mkAnd(throwConditionExpr, context.mkNot(returnConditionExpr));
-                setThrowExpr((BoolExpr) context.mkITE(condExpr, throwExpr, getThrowExpr()));
-            });
         }
     }
 
@@ -954,7 +944,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         scan(throwStatement.getThrownExpression());
         setThrowExpr(context.mkTrue());
         visitImpure();
-        inferThrowEffect(throwStatement);
+        interproceduralAnalyzer.inferThrowEffect(throwStatement);
     }
 
     @Override
@@ -1067,12 +1057,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     /**
      * Makes targetExpr not null (if something is dereferenced => it is not null).
      */
-    private void visitDereference(Expr targetExpr)
+    private void visitDereference(CtTargetedExpression<?, ?> dereference, Expr targetExpr)
     {
         if (targetExpr != null)
         {
             BoolExpr notNullExpr = context.mkDistinct(targetExpr, memory.nullPointer());
             solver.add(context.mkImplies(getState(), notNullExpr));
+            interproceduralAnalyzer.inferParameterDereferenceEffect(dereference, targetExpr);
         }
     }
 
@@ -1124,6 +1115,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
     @Override
     public <T> void visitCtInvocation(CtInvocation<T> invocation)
     {
+        CtInvocation<?> previousInvocation = currentInvocation;
+        currentInvocation = invocation;
+
         CtExecutableReference<T> executable = invocation.getExecutable();
         CtExecutable<T> executableDeclaration;
         try
@@ -1248,33 +1242,13 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
             }
         }
 
-        List<CtTypeReference<?>> formalParameters = invocation.getExecutable().getParameters();
-        boolean isEllipsis = arguments.size() != formalParameters.size();
+        List<CtTypeReference<?>> formalParameters = executable.getParameters();
+        boolean isEllipsis = arguments.size() != formalParameters.size() || isEllipsisFunction(executable);
 
         List<Expr> argsExprs = new ArrayList<>();
         if (summary != null && !isEllipsis) // TODO: handle ellipsis properly
         {
-            for (int i = 0; i < arguments.size(); i++)
-            {
-                CtExpression<?> argument = arguments.get(i);
-                CtTypeReference<?> argActualType = getActualType(argument);
-                CtTypeReference<?> argFormalType = formalParameters.get(i);
-                Expr argExpr = (Expr) argument.getMetadata("value");
-                argExpr = applyCasts(argExpr, argActualType, Collections.singletonList(argFormalType));
-                argsExprs.add(argExpr);
-            }
-
-            if (targetExpr != null)
-            {
-                for (EffectFunction effect : summary.getEffects())
-                {
-                    effect.apply(targetExpr, argsExprs.toArray(new Expr[0]));
-                    if (effect instanceof ThrowEffectFunction)
-                    {
-                        inferThrowEffect(invocation);
-                    }
-                }
-            }
+            argsExprs = getActualArgumentsValues(arguments, formalParameters);
         }
 
         // Visit invocation return
@@ -1316,8 +1290,21 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         if (dereferenceTarget)
         {
-            visitDereference(targetExpr);
+            visitDereference(invocation, targetExpr);
         }
+
+        if (summary != null && !isEllipsis)
+        {
+            if (targetExpr != null)
+            {
+                for (EffectFunction effect : summary.getEffects())
+                {
+                    effect.apply(targetExpr, argsExprs.toArray(new Expr[0]));
+                }
+            }
+        }
+
+        currentInvocation = previousInvocation;
     }
 
     @Override
@@ -1494,7 +1481,9 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
 
         for (CtParameter<?> parameter : parameters)
         {
-            variablesMap.put(parameter.getReference(), makeFreshConstFromType(context, parameter.getType()));
+            Expr parameterExpr = makeFreshConstFromType(context, parameter.getType());
+            variablesMap.put(parameter.getReference(), parameterExpr);
+            parameter.putMetadata("value", parameterExpr);
         }
 
         try
@@ -1938,7 +1927,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         currentResult = applyCasts(currentResult, fieldRead.getType(), fieldRead.getTypeCasts());
         fieldRead.putMetadata("value", currentResult);
         checkFieldRead(fieldRead);
-        visitDereference(targetExpr);
+        visitDereference(fieldRead, targetExpr);
     }
 
     @Override
@@ -1948,7 +1937,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         currentResult = getTargetValue(context, variablesMap, memory, fieldWrite.getTarget());
         fieldWrite.putMetadata("value", currentResult);
         checkFieldWrite(fieldWrite);
-        visitDereference(currentResult);
+        visitDereference(fieldWrite, currentResult);
         visitImpure();
         visitMutation(fieldWrite);
     }
@@ -1976,7 +1965,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         currentResult = applyCasts(arrayReadExpr, arrayRead.getType(), arrayRead.getTypeCasts());
         arrayRead.putMetadata("value", currentResult);
         checkArrayRead(arrayRead);
-        visitDereference(targetExpr);
+        visitDereference(arrayRead, targetExpr);
     }
 
     @Override
@@ -1987,7 +1976,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
         currentResult = getTargetValue(context, variablesMap, memory, arrayWrite.getTarget());
         arrayWrite.putMetadata("value", currentResult);
         checkArrayWrite(arrayWrite);
-        visitDereference(currentResult);
+        visitDereference(arrayWrite, currentResult);
         visitImpure();
         visitMutation(arrayWrite);
     }

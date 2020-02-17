@@ -1,3 +1,5 @@
+WARNING: Condition 'o1 == null' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/engine/subsystem/headless/renderer/HeadlessWorldRenderer.java:290)
+WARNING: Condition 'o2 == null' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/engine/subsystem/headless/renderer/HeadlessWorldRenderer.java:292)
 WARNING: Condition 'freeform.getMax() != null' is always true when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/atlas/AtlasFormat.java:113)
 WARNING: Condition '(null == data.getColors())' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/mesh/ColladaMeshFormat.java:88)
 WARNING: Condition '(null == data.getTexCoord0())' is always false when reached (./projects/terasology/engine/src/main/java/org/terasology/rendering/assets/mesh/ColladaMeshFormat.java:89)
