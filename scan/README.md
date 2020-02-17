@@ -9,6 +9,6 @@ Usage:
 `scan-gradle [options] -- <build command> [build command options]`  
 
 Examples:  
-`scan-ant.py -o 'report.txt' -- ant clean compile`  
-`scan-maven.py -o 'report.txt' -- mvn clean compile`  
-`scan-gradle.py -o 'report.txt' -- ./gradlew clean assemble`  
+`scan-ant.py -o report.txt -- ant clean compile`  
+`scan-maven.py -o report.txt -- mvn clean compile`  
+`scan-gradle.py -o report.txt -- ./gradlew clean assemble`  
