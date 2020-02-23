@@ -589,4 +589,39 @@ public class TestArray
         byte i = 8;
         arr[i] = 4; //@ARRAY_INDEX_IS_OUT_OF_BOUNDS
     }
+
+    void testArrayIndexPromotion1()
+    {
+        byte i = 0;
+        int[] arr = {1, 2, 3};
+        arr[i]++;
+        if (arr[i] == 2) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayIndexPromotion2()
+    {
+        byte i = 0;
+        int[] arr = {1, 2, 3};
+        arr[i] = 0;
+        if (arr[i] == 0) {} //@ALWAYS_TRUE
+    }
+
+    void testArrayIndexPromotion3()
+    {
+        byte i = 0;
+        int[] arr = {1, 2, 3};
+        arr[i] += 1;
+        if (arr[i] == 2) {} //@ALWAYS_TRUE
+    }
+
+    class A { public int[] arr; }
+
+    public A[] marr;
+
+    void testArrayIndexPromotion4()
+    {
+        byte i = 0;
+        marr[i].arr[i] = 0;
+        if (marr[i].arr[i] == 0) {} //@ALWAYS_TRUE
+    }
 }

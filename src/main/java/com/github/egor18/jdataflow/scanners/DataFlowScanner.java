@@ -1768,6 +1768,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                 indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
             }
 
+            indexExpr = promoteNumericValue(context, indexExpr, indexType);
             leftData = memory.readArray((CtArrayTypeReference) getActualType(arrayWrite.getTarget()), (IntExpr) leftValue, indexExpr);
         }
 
@@ -2243,6 +2244,7 @@ public abstract class DataFlowScanner extends AbstractCheckingScanner
                     indexExpr = memory.read(indexType.unbox(), (IntExpr) indexExpr);
                 }
 
+                indexExpr = promoteNumericValue(context, indexExpr, indexType);
                 operandData = memory.readArray((CtArrayTypeReference) getActualType(arrayWrite.getTarget()), (IntExpr) operandValue, indexExpr);
             }
 

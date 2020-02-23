@@ -13,6 +13,7 @@ import spoon.reflect.reference.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.github.egor18.jdataflow.utils.PromotionUtils.promoteNumericValue;
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
 import static com.github.egor18.jdataflow.utils.TypeUtils.makeFreshInt;
 
@@ -58,6 +59,7 @@ public final class CommonUtils
                 }
                 CtArrayRead arrayRead = (CtArrayRead) t;
                 CtExpression index = arrayRead.getIndexExpression();
+                CtTypeReference<?> indexType = getActualType(index);
                 Expr arrayIndex = (Expr) index.getMetadata("value");
                 if (arrayIndex == null)
                 {
@@ -68,6 +70,7 @@ public final class CommonUtils
                     // Unboxing conversion
                     arrayIndex = memory.read(getActualType(index).unbox(), (IntExpr) arrayIndex);
                 }
+                arrayIndex = promoteNumericValue(context, arrayIndex, indexType);
                 targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) getActualType(arrayRead.getTarget()), targetValue, arrayIndex);
             }
             else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)
