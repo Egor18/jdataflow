@@ -8,7 +8,7 @@ import time
 
 PROJECTS = {
     'jdataflow' : { # eat your own dog food, right?
-        'download' : ['git clone https://github.com/Egor18/jdataflow.git jdataflow', 'cd jdataflow && git checkout 17eb683'],
+        'download' : ['git clone https://github.com/Egor18/jdataflow.git jdataflow', 'cd jdataflow && git checkout bcb155f'],
         'build-system' : 'gradle',
         'build' : ['./gradlew clean assemble'],
     },
@@ -43,6 +43,43 @@ PROJECTS = {
         'exclude' : ['clients/src/generated'],
     },
 
+    'gumtree' : {
+        'download' : ['git clone https://github.com/GumTreeDiff/gumtree.git gumtree --depth 1 -b v2.1.2'],
+        'build-system' : 'gradle',
+        'build' : ['./gradlew clean assemble'],
+        'exclude' : [
+            'gen.antlr3',
+            'gen.antlr3-antlr',
+            'gen.antlr3-json',
+            'gen.antlr3-php',
+            'gen.antlr3-r',
+            'gen.antlr3-xml',
+            'gen.antlr4',
+            'gen.antlr4-matlab',
+            'gen.c',
+            'gen.css',
+            'gen.javaparser',
+            'gen.jdt',
+            'gen.js',
+            'gen.python',
+            'gen.ruby',
+            'gen.srcml',
+            'core/src/main/java/com/github/gumtreediff/matchers/optimal/rted/InfoTree.java',
+        ],
+    },
+
+    'litiengine' : {
+        'download' : ['git clone https://github.com/gurkenlabs/litiengine.git litiengine --depth 1 -b v0.4.19-alpha'],
+        'build-system' : 'gradle',
+        'build' : ['./gradlew clean assemble'],
+    },
+
+    'phpinspectionsea' : {
+        'download' : ['git clone https://github.com/kalessil/phpinspectionsea.git phpinspectionsea --depth 1 -b U-3.0.8'],
+        'build-system' : 'gradle',
+        'build' : ['./gradlew clean assemble'],
+    },
+
     'tomcat' : {
         'download' : ['git clone https://github.com/apache/tomcat.git tomcat --depth 1 -b 9.0.26'],
         'build-system' : 'ant',
@@ -63,6 +100,56 @@ PROJECTS = {
         'build' : ['ant clean compile'],
     },
 
+    'freecol' : {
+        'download' : ['git clone https://github.com/FreeCol/freecol.git freecol', 'cd freecol && git checkout 4e724b1'],
+        'build-system' : 'ant',
+        'build' : ['ant clean compile'],
+        'exclude' : ['src/net/sf/freecol/common/model/Map.java'],
+    },
+
+    'repairnator' : {
+        'download' : ['git clone https://github.com/eclipse/repairnator.git repairnator', 'cd repairnator && git checkout 2012156'],
+        'root' : 'repairnator/src',
+        'build-system' : 'maven',
+        'build' : ['mvn clean install -DskipTests'],
+    },
+
+    'nopol' : {
+        'download' : ['git clone https://github.com/SpoonLabs/nopol.git nopol', 'cd nopol && git checkout bf4a92f'],
+        'root' : 'nopol/nopol',
+        'build-system' : 'maven',
+        'build' : ['mvn clean install -DskipTests'],
+    },
+
+    'astor' : {
+        'download' : ['git clone https://github.com/SpoonLabs/astor.git astor', 'cd astor && git checkout 8581b1c'],
+        'build-system' : 'maven',
+        'build' : ['mvn clean install -DskipTests'],
+    },
+
+    'commons-math' : {
+        'download' : ['git clone https://github.com/apache/commons-math.git commons-math', 'cd commons-math && git checkout 4d5983a'],
+        'build-system' : 'maven',
+        'build' : ['mvn clean install -DskipTests'],
+        'exclude' : [
+            'src/main/java/org/apache/commons/math4/analysis/differentiation/DSCompiler.java',
+            'src/main/java/org/apache/commons/math4/special/BesselJ.java',
+            'src/main/java/org/apache/commons/math4/fitting/HarmonicCurveFitter.java',
+            'src/main/java/org/apache/commons/math4/ode/nonstiff/DormandPrince853FieldStepInterpolator.java',
+            'src/main/java/org/apache/commons/math4/transform/FastCosineTransformer.java',
+            'src/main/java/org/apache/commons/math4/transform/FastSineTransformer.java',
+            'src/main/java/org/apache/commons/math4/util/Decimal64.java',
+            'src/main/java/org/apache/commons/math4/util/FastMath.java',
+            'src/test/java/org/apache/commons/math4/dfp/DfpTest.java',
+        ],
+    },
+
+    'commons-lang' : {
+        'download' : ['git clone https://github.com/apache/commons-lang.git commons-lang', 'cd commons-lang && git checkout 94b3784'],
+        'build-system' : 'maven',
+        'build' : ['mvn clean install -DskipTests'],
+    },
+
     'junit4' : {
         'download' : ['git clone https://github.com/junit-team/junit4.git junit4 --depth 1 -b r4.13-beta-3'],
         'build-system' : 'maven',
@@ -76,7 +163,7 @@ PROJECTS = {
     },
 
     'nanohttpd' : {
-        'download' : ['git clone https://github.com/NanoHttpd/nanohttpd.git', 'cd nanohttpd && git checkout efb2ebf'],
+        'download' : ['git clone https://github.com/NanoHttpd/nanohttpd.git nanohttpd', 'cd nanohttpd && git checkout efb2ebf'],
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests'],
     },
@@ -96,13 +183,13 @@ PROJECTS = {
     },
 
     'cactoos' : {
-        'download' : ['git clone https://github.com/yegor256/cactoos.git --depth 1 -b 0.42'],
+        'download' : ['git clone https://github.com/yegor256/cactoos.git cactoos --depth 1 -b 0.42'],
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests'],
     },
 
     'takes' : {
-        'download' : ['git clone https://github.com/yegor256/takes.git --depth 1 -b 1.17'],
+        'download' : ['git clone https://github.com/yegor256/takes.git takes --depth 1 -b 1.17'],
         'build-system' : 'maven',
         'build' : ['mvn clean install -DskipTests'],
     },

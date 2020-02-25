@@ -1,0 +1,6 @@
+WARNING: Condition '!done' is always true when reached (./projects/gumtree/core/src/main/java/com/github/gumtreediff/matchers/optimizations/CrossMoveMatcherThetaF.java:140)
+WARNING: Condition '(partner != null)' is always true when reached (./projects/gumtree/core/src/main/java/com/github/gumtreediff/matchers/optimizations/LcsOptMatcherThetaB.java:92)
+WARNING: Condition '(foundPosDstNode != null)' is always true when reached (./projects/gumtree/core/src/main/java/com/github/gumtreediff/matchers/optimizations/LeafMoveMatcherThetaE.java:172)
+WARNING: Condition '(foundPosSrcNode != null)' is always true when reached (./projects/gumtree/core/src/main/java/com/github/gumtreediff/matchers/optimizations/LeafMoveMatcherThetaE.java:231)
+WARNING: Condition '(foundSrcNode != null)' is always true when reached (./projects/gumtree/core/src/main/java/com/github/gumtreediff/matchers/optimizations/LeafMoveMatcherThetaE.java:241)
+WARNING: Condition '(foundDst != null)' is always true when reached (./projects/gumtree/core/src/main/java/com/github/gumtreediff/matchers/optimizations/LeafMoveMatcherThetaE.java:246)

@@ -1,0 +1,2 @@
+WARNING: Condition '(this.gamePadIndex != (-1))' is always true when reached (./projects/litiengine/src/de/gurkenlabs/litiengine/input/GamepadEntityController.java:73)
+WARNING: Condition 'this.path != null' is always true when reached (./projects/litiengine/src/de/gurkenlabs/litiengine/pathfinding/EntityNavigator.java:85)

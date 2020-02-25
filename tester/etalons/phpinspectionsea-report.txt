@@ -1,0 +1,4 @@
+WARNING: Condition 'arguments.length == 2' is always true when reached (./projects/phpinspectionsea/src/main/java/com/kalessil/phpStorm/phpInspectionsEA/inspectors/apiUsage/dateTime/StrtotimeUsageInspector.java:73)
+WARNING: Condition '(arguments.length >= 4)' is always true when reached (./projects/phpinspectionsea/src/main/java/com/kalessil/phpStorm/phpInspectionsEA/inspectors/phpUnit/PhpUnitDeprecationsInspector.java:51)
+WARNING: Condition 'result' is always false when reached (./projects/phpinspectionsea/src/main/java/com/kalessil/phpStorm/phpInspectionsEA/inspectors/semanticalAnalysis/binaryOperations/strategy/MultipleValuesEqualityInIfBodyStrategy.java:93)
+WARNING: Condition 'operator == com.jetbrains.php.lang.lexer.PhpTokenTypes.opNOT_IDENTICAL' is always true when reached (./projects/phpinspectionsea/src/main/java/com/kalessil/phpStorm/phpInspectionsEA/inspectors/semanticalAnalysis/parameters/CallableParameterUseCaseInTypeContextInspection.java:393)

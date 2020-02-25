@@ -1,0 +1,6 @@
+WARNING: Condition 'isClassLoaded' is always true when reached (./projects/nopol/nopol/src/main/java/fr/inria/lille/repair/synthesis/collect/DynamothDataCollector.java:247)
+WARNING: Condition 'success' is always true when reached (./projects/nopol/nopol/src/main/java/xxl/java/compiler/DynamicClassCompiler.java:101)
+WARNING: Condition 'true' is always true when reached (./projects/nopol/nopol/src/test/java/fr/inria/lille/diff/testclasses/Bar.java:6)
+WARNING: Condition 'true' is always true when reached (./projects/nopol/nopol/src/test/java/fr/inria/lille/diff/testclasses/Bar.java:10)
+WARNING: Condition 'true' is always true when reached (./projects/nopol/nopol/src/test/java/fr/inria/lille/diff/testclasses/Bar.java:24)
+WARNING: Condition 'true' is always true when reached (./projects/nopol/nopol/src/test/java/fr/inria/lille/diff/testclasses/Bar.java:30)
