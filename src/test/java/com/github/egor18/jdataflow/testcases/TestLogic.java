@@ -183,4 +183,83 @@ public class TestLogic
             if (p1 != null) {} //@ALWAYS_TRUE
         }
     }
+
+    public boolean unknownCond;
+
+    void testComplicatedLogic1(int atStop, int present, int retained, int option)
+    {
+        // found this in FreeCol project
+        if (present <= 0)
+        {
+            return;
+        }
+
+        int amount = present;
+        if (amount > atStop)
+        {
+            switch (option)
+            {
+                case 0:
+                    if (unknownCond)
+                    {
+                        if (atStop == 0) return;
+                        amount = atStop;
+                    }
+                    break;
+                case 1:
+                    amount = atStop;
+                    break;
+                case 2:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (amount == 0)
+        {
+            return;
+        }
+
+        if (present == retained)
+        {
+            return;
+        }
+
+        if (present - retained != amount)
+        {
+        }
+        else if (amount > atStop)
+        {
+            if (retained > 0) {} //@ALWAYS_FALSE
+        }
+    }
+
+    void testComplicatedLogic1Simplified(int atStop, int present, int retained)
+    {
+        if (present <= 0)
+        {
+            return;
+        }
+
+        int amount = unknownCond ? present : atStop;
+
+        if (amount == 0)
+        {
+            return;
+        }
+
+        if (present == retained)
+        {
+            return;
+        }
+
+        if (present - retained != amount)
+        {
+        }
+        else if (amount > atStop)
+        {
+            if (retained > 0) {} //@ALWAYS_FALSE
+        }
+    }
 }
