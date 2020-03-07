@@ -5,8 +5,11 @@ import sys
 import json
 import shutil
 import time
+import argparse
+import multiprocessing
 
 PROJECTS = {
+
     'jdataflow' : { # eat your own dog food, right?
         'download' : ['git clone https://github.com/Egor18/jdataflow.git jdataflow', 'cd jdataflow && git checkout bcb155f'],
         'build-system' : 'gradle',
@@ -24,6 +27,7 @@ PROJECTS = {
         'download' : ['git clone https://github.com/MovingBlocks/Terasology.git terasology --depth 1 -b v2.2.0'],
         'build-system' : 'gradle',
         'build' : ['./gradlew clean assemble'],
+        'exclude' : ['engine/src/main/java/org/terasology/protobuf']
     },
 
     'spotbugs' : {
@@ -87,6 +91,7 @@ PROJECTS = {
         'exclude' : [
             'java/org/apache/coyote/http2/HPackHuffman.java',
             'java/org/apache/el/parser',
+            'java/org/apache/coyote/http11/Http11Processor.java',
             'java/org/apache/tomcat/util/http/parser/HttpParser.java',
             'java/org/apache/tomcat/util/descriptor/web/WebXml.java',
             'java/org/apache/tomcat/util/json',
@@ -104,7 +109,10 @@ PROJECTS = {
         'download' : ['git clone https://github.com/FreeCol/freecol.git freecol', 'cd freecol && git checkout 4e724b1'],
         'build-system' : 'ant',
         'build' : ['ant clean compile'],
-        'exclude' : ['src/net/sf/freecol/common/model/Map.java'],
+        'exclude' : [
+            'src/net/sf/freecol/common/model/Map.java',
+            'src/net/sf/freecol/server/ai/EuropeanAIPlayer.java',
+        ],
     },
 
     'repairnator' : {
@@ -301,11 +309,28 @@ REPORTS_DIR = TESTER_DIR + '/reports'
 ETALONS_DIR = TESTER_DIR + '/etalons'
 DIFFS_DIR = TESTER_DIR + '/diffs'
 
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
+
 class Project:
-    def __init__(self, project_name, project_data):
+    def __init__(self, project_name, project_data, shared_statuses, print_lock):
         self.project_name = project_name
         self.project_data = project_data
         self.dir = self.get_project_dir()
+        self.shared_statuses = shared_statuses
+        self.print_lock = print_lock
+
+    def update_table(self):
+        with self.print_lock:
+            cls()
+            for project_name, status in self.shared_statuses.items():
+                print(f'{project_name.ljust(25)} {status}')
+            diffs = sum(map(lambda s: s.startswith('DIFF'), self.shared_statuses.values()))
+            fails = sum(map(lambda s: s.startswith('FAIL'), self.shared_statuses.values()))
+            ok = sum(map(lambda s: s.startswith('OK'), self.shared_statuses.values()))
+            checked = diffs + fails + ok
+            total = len(self.shared_statuses.values())
+            print(f'Projects checked: {checked}/{total}, Fails: {fails}, Diffs: {diffs}')
 
     def get_project_dir(self):
         if 'root' in self.project_data:
@@ -322,12 +347,16 @@ class Project:
     def download(self):
         os.chdir(PROJECTS_DIR)
         if not os.path.exists(self.dir):
-            print(f'Downloading {self.project_name}... ', end='', flush=True)
+            self.shared_statuses[self.project_name] = 'DOWNLOADING...'
+            self.update_table()
             for cmd in self.project_data['download']:
                 if self.run_cmd(cmd) != 0:
-                    print('FAIL')
-                    exit(1)
-            print('OK')
+                    self.shared_statuses[self.project_name] = 'FAIL'
+                    self.update_table()
+                    return False
+            self.shared_statuses[self.project_name] = 'OK'
+            self.update_table()
+        return True
 
     def compare_report_with_etalon(self):
         project_name = self.project_name
@@ -392,26 +421,33 @@ class Project:
 
     def check(self):
         os.chdir(self.dir)
-        print(f'Analyzing {self.project_name}... ', end='', flush=True)
+        self.shared_statuses[self.project_name] = 'ANALYZING...'
+        self.update_table()
         if 'build-system' not in self.project_data or not self.project_data['build-system']:
             if 'sources' not in self.project_data:
-                raise Exception('No source files')
+                self.shared_statuses[self.project_name] = 'FAIL (No source files)'
+                self.update_table()
+                return False
             if 'build' in self.project_data:
                 for cmd in self.project_data['build']:
                     if self.run_cmd(cmd) != 0:
-                        print('FAIL')
-                        exit(1)
+                        self.shared_statuses[self.project_name] = 'FAIL'
+                        self.update_table()
+                        return False
             cmd = f'java -jar {PATH_TO_JAR} --no-failsafe'
             cmd += self.make_parameters()
             start_time = time.time()
             if self.run_cmd(cmd) != 0:
-                print('FAIL')
-                exit(1)
+                self.shared_statuses[self.project_name] = 'FAIL'
+                self.update_table()
+                return False
         elif self.project_data['build-system'] == 'maven' or \
              self.project_data['build-system'] == 'gradle' or \
              self.project_data['build-system'] == 'ant':
                 if len(self.project_data['build']) != 1:
-                    raise Exception('Invalid build command')
+                    self.shared_statuses[self.project_name] = 'FAIL (Invalid build command)'
+                    self.update_table()
+                    return False
                 build_cmd = self.project_data['build'][0]
                 if os.name == 'nt' and build_cmd.startswith('./'):
                     build_cmd = build_cmd[2:]
@@ -423,14 +459,19 @@ class Project:
                 cmd +=  f' -- {build_cmd}'
                 start_time = time.time()
                 if self.run_cmd(cmd) != 0:
-                    print('FAIL')
-                    exit(1)
+                    self.shared_statuses[self.project_name] = 'FAIL'
+                    self.update_table()
+                    return False
         else:
-            raise Exception('Unknown build system')
+            self.shared_statuses[self.project_name] = 'FAIL (Unknown build system)'
+            self.update_table()
+            return False
         elapsed_time = time.time() - start_time
         duration = time.strftime('(%Hh:%Mm:%Ss)', time.gmtime(elapsed_time))
         status = self.compare_report_with_etalon()
-        print(status + ' ' + duration)
+        self.shared_statuses[self.project_name] = status + ' ' + duration
+        self.update_table()
+        return True
 
 def prepare_dirs():
     os.makedirs(PROJECTS_DIR, exist_ok=True)
@@ -448,22 +489,48 @@ def prepare_dirs():
     os.makedirs(DIFFS_DIR)
     time.sleep(0.15)
 
-def run(selected_projects):
-    prepare_dirs()
-    for selected_project in selected_projects:
-        if selected_project not in PROJECTS:
-            raise Exception('Unknown project ' + selected_project)
-    for project_name in PROJECTS:
-        if len(selected_projects) != 0 and project_name not in selected_projects:
-            continue
-        p = Project(project_name, PROJECTS[project_name])
-        p.download()
-        p.check()
+def run_project(project):
+    if project.download():
+        project.check()
+
+def run(projects, num_of_processes):
+    pool = multiprocessing.Pool(processes=num_of_processes)
+    pool.map(run_project, projects)
+    pool.close()
+    pool.join()
+
+def make_args_parser():
+    name = os.path.basename(sys.argv[0])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-j', help='Number of processes (default: <= 4)')
+    parser.add_argument('projects', nargs='*')
+    return parser
 
 if __name__ == '__main__':
+    parser = make_args_parser()
+    args = parser.parse_args()
+    if args.j:
+        num_of_processes = int(args.j)
+    else:
+        if multiprocessing.cpu_count() < 2:
+            num_of_processes = 1
+        else:
+            num_of_processes = min(multiprocessing.cpu_count() - 1, 4)
+    selected_projects_names = args.projects
     total_start_time = time.time()
-    selected_projects = sys.argv[1:]
-    run(selected_projects)
+    manager = multiprocessing.Manager()
+    print_lock = manager.Lock()
+    shared_statuses = manager.dict()
+    projects = []
+    if not selected_projects_names:
+        selected_projects_names = list(PROJECTS.keys())
+    for project_name in selected_projects_names:
+        if project_name not in PROJECTS:
+            raise Exception('Unknown project ' + project_name)
+        shared_statuses[project_name] = ''
+        projects.append(Project(project_name, PROJECTS[project_name], shared_statuses, print_lock))
+    prepare_dirs()
+    run(projects, num_of_processes)
     total_elapsed_time = time.time() - total_start_time
     total_duration = time.strftime('(%Hh:%Mm:%Ss)', time.gmtime(total_elapsed_time))
     print('Total time: ' + total_duration)
