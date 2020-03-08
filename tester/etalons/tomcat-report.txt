@@ -37,6 +37,7 @@ WARNING: Condition 'sendfileRunning' is always true when reached (./projects/tom
 WARNING: Condition 'block' is always true when reached (./projects/tomcat/java/org/apache/tomcat/util/net/NioEndpoint.java:1262)
 WARNING: Condition 'handshakeComplete' is always true when reached (./projects/tomcat/java/org/apache/tomcat/util/net/SecureNio2Channel.java:360)
 WARNING: Condition '(written > 0)' is always true when reached (./projects/tomcat/java/org/apache/tomcat/util/net/openssl/OpenSSLEngine.java:625)
+WARNING: Condition 'size == 0' is always false when reached (./projects/tomcat/java/org/apache/tomcat/util/net/openssl/OpenSSLEngine.java:810)
 WARNING: Condition 'needsInput' is always true when reached (./projects/tomcat/java/org/apache/tomcat/websocket/PerMessageDeflate.java:389)
 WARNING: Condition 'needsInput' is always true when reached (./projects/tomcat/java/org/apache/tomcat/websocket/PerMessageDeflate.java:396)
 WARNING: Condition '(indexPrimitive == (-1))' is always true when reached (./projects/tomcat/java/org/apache/tomcat/websocket/pojo/PojoMethodMapping.java:559)

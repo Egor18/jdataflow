@@ -1,0 +1,6 @@
+WARNING: Condition 'this.origin.add(item)' is always true when reached (./projects/takes/src/main/java/org/takes/misc/VerboseList.java:94)
+WARNING: Result of 'org.mockito.Mockito.verify(this.origin).size()' is ignored (./projects/takes/src/test/java/org/takes/misc/VerboseListTest.java:87)
+WARNING: Result of 'org.mockito.Mockito.verify(this.origin).isEmpty()' is ignored (./projects/takes/src/test/java/org/takes/misc/VerboseListTest.java:97)
+WARNING: Result of 'org.mockito.Mockito.verify(this.origin).contains(obj)' is ignored (./projects/takes/src/test/java/org/takes/misc/VerboseListTest.java:108)
+WARNING: Result of 'org.mockito.Mockito.verify(this.origin).get(index)' is ignored (./projects/takes/src/test/java/org/takes/misc/VerboseListTest.java:229)
+WARNING: Result of 'org.mockito.Mockito.doThrow(cause).when(this.origin).get(index)' is ignored (./projects/takes/src/test/java/org/takes/misc/VerboseListTest.java:316)

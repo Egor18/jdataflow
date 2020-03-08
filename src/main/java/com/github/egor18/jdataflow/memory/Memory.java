@@ -68,10 +68,25 @@ public class Memory
             ArraySort sort;
             if (reference instanceof CtArrayTypeReference)
             {
-                ArraySort arraySort = context.mkArraySort(context.mkBitVecSort(32), getTypeSort(context, ((CtArrayTypeReference) reference).getComponentType()));
+                CtTypeReference componentType = ((CtArrayTypeReference) reference).getComponentType();
+                ArraySort arraySort = context.mkArraySort(context.mkBitVecSort(32), getTypeSort(context, componentType));
                 sort = context.mkArraySort(context.mkIntSort(), arraySort);
             }
-            else if (reference.getSimpleName().equals("#ARRAY_LENGTH"))
+            else if (reference instanceof CtTypeReference && isList((CtTypeReference) reference))
+            {
+                CtTypeReference componentType;
+                if (!((CtTypeReference) reference).getActualTypeArguments().isEmpty())
+                {
+                    componentType = ((CtTypeReference) reference).getActualTypeArguments().get(0);
+                }
+                else
+                {
+                    componentType = reference.getFactory().Type().OBJECT;
+                }
+                ArraySort arraySort = context.mkArraySort(context.mkBitVecSort(32), getTypeSort(context, componentType));
+                sort = context.mkArraySort(context.mkIntSort(), arraySort);
+            }
+            else if (reference.getSimpleName().equals("#ARRAY_LENGTH") || reference.getSimpleName().equals("#LIST_SIZE"))
             {
                 sort = context.mkArraySort(context.getIntSort(), context.mkBitVecSort(32));
             }
@@ -98,7 +113,7 @@ public class Memory
     /**
      * Reads from the memory array of the specified array type at the index targetExpr and at the arrayIndex position.
      */
-    public Expr readArray(CtArrayTypeReference type, IntExpr targetExpr, Expr arrayIndex)
+    public Expr readArray(CtTypeReference type, IntExpr targetExpr, Expr arrayIndex)
     {
         ensureArrayCreated(type);
         ArrayExpr memoryArray = memoryMap.get(type);
@@ -119,7 +134,7 @@ public class Memory
     /**
      * Writes value to the memory array of the specified array type at the index targetExpr and at the arrayIndex position.
      */
-    public void writeArray(CtArrayTypeReference type, IntExpr targetExpr, Expr arrayIndex, Expr value)
+    public void writeArray(CtTypeReference type, IntExpr targetExpr, Expr arrayIndex, Expr value)
     {
         ensureArrayCreated(type);
         ArrayExpr memoryArray = memoryMap.get(type);
@@ -186,9 +201,9 @@ public class Memory
                     }
                 }
             }
-            else if (reference instanceof CtArrayTypeReference)
+            else if (reference instanceof CtArrayTypeReference || (reference instanceof CtTypeReference && isList((CtTypeReference) reference)))
             {
-                if (((CtArrayTypeReference) reference).getQualifiedName().equals(type.getQualifiedName()))
+                if (((CtTypeReference) reference).getQualifiedName().equals(type.getQualifiedName()))
                 {
                     ArrayExpr memoryArray = memoryMap.get(reference);
                     ArrayExpr oldArrayValue = (ArrayExpr) context.mkSelect(memoryArray, address);
@@ -196,6 +211,14 @@ public class Memory
                     memoryMap.put(reference, context.mkStore(memoryArray, address, newArrayValue));
                 }
             }
+        }
+
+        // Reset list size
+        if (isList(type))
+        {
+            BitVecExpr sizeExpr = (BitVecExpr) context.mkFreshConst("", context.mkBitVecSort(32));
+            solver.add(context.mkBVSGE(sizeExpr, context.mkBV(0, 32)));
+            write(getListSizeReference(type.getFactory()), address, sizeExpr);
         }
 
         // Reset calculable value

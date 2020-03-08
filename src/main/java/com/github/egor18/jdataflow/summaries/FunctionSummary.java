@@ -31,6 +31,9 @@ public class FunctionSummary
     // Indices of read-only (non-modifiable) arguments
     private List<Integer> readOnlyArguments = new ArrayList<>();
 
+    // Indices of the arguments of a generic collection type
+    private List<Integer> collectionGenericTypeArguments = new ArrayList<>();
+
     // Whether target is read-only (non-modifiable)
     private boolean isReadOnlyTarget;
 
@@ -118,6 +121,22 @@ public class FunctionSummary
     public void setReadOnlyArguments(List<Integer> readOnlyArguments)
     {
         this.readOnlyArguments = readOnlyArguments;
+    }
+
+    public FunctionSummary collectionGenericTypeArgument(Integer argumentIndex)
+    {
+        collectionGenericTypeArguments.add(argumentIndex);
+        return this;
+    }
+
+    public List<Integer> getCollectionGenericTypeArguments()
+    {
+        return collectionGenericTypeArguments;
+    }
+
+    public void setCollectionGenericTypeArguments(List<Integer> collectionGenericTypeArguments)
+    {
+        this.collectionGenericTypeArguments = collectionGenericTypeArguments;
     }
 
     public boolean isReadOnlyTarget()

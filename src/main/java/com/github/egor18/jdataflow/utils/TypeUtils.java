@@ -2,13 +2,13 @@ package com.github.egor18.jdataflow.utils;
 
 import com.microsoft.z3.*;
 import spoon.reflect.code.CtExpression;
+import spoon.reflect.declaration.CtType;
+import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.reference.CtWildcardReference;
+import spoon.support.SpoonClassNotFoundException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class TypeUtils
 {
@@ -151,6 +151,33 @@ public final class TypeUtils
         }
     }
 
+    private static Set<CtTypeReference<?>> getSuperInterfaces(CtTypeReference<?> type)
+    {
+        CtType<?> t = type.getTypeDeclaration();
+        if (t != null)
+        {
+            return Collections.unmodifiableSet(t.getSuperInterfaces());
+        }
+        return Collections.emptySet();
+    }
+
+    /**
+    * Checks if the type is java.util.List or implements it.
+    */
+    public static boolean isList(CtTypeReference<?> type)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        if (type.getQualifiedName().equals("java.util.List"))
+        {
+            return true;
+        }
+        return getSuperInterfaces(type).stream().anyMatch(TypeUtils::isList) || isList(type.getSuperclass());
+    }
+
     /**
      * Checks if the type is calculable by the solver.
      */
@@ -291,5 +318,21 @@ public final class TypeUtils
             s = getSuperclass(s);
         }
         return superclasses;
+    }
+
+    /**
+     * Returns artificial reference to array.length
+     */
+    public static CtTypeReference<?> getArrayLengthReference(Factory factory)
+    {
+        return factory.createTypeReference().setSimpleName("#ARRAY_LENGTH");
+    }
+
+    /**
+     * Returns artificial reference to List.size
+     */
+    public static CtTypeReference<?> getListSizeReference(Factory factory)
+    {
+        return factory.createTypeReference().setSimpleName("#LIST_SIZE");
     }
 }

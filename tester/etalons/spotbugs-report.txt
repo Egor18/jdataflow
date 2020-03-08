@@ -338,6 +338,9 @@ WARNING: Null dereference occurs in the 'body.trim()' expression (./projects/spo
 WARNING: Null dereference occurs in the 'body.length()' expression (./projects/spotbugs/spotbugsTestCases/src/java/foundOnTheWeb/BenChelf_2007_01_29.java:104)
 WARNING: Condition '(body_tracker != 12) && (body.length() < 1)' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/foundOnTheWeb/BenChelf_2007_01_29.java:104)
 WARNING: Null dereference occurs in the 'mlist.contains(new java.util.LinkedList<java.lang.String>())' expression (./projects/spotbugs/spotbugsTestCases/src/java/gcUnrelatedTypes/AllListsCouldBeEqual.java:162)
+WARNING: Result of 'mlist.contains(new java.util.LinkedList<java.lang.String>())' is ignored (./projects/spotbugs/spotbugsTestCases/src/java/gcUnrelatedTypes/AllListsCouldBeEqual.java:162)
+WARNING: Result of 'list.contains("Hello")' is ignored (./projects/spotbugs/spotbugsTestCases/src/java/gcUnrelatedTypes/ListTests.java:10)
+WARNING: Result of 'list.contains(new java.lang.StringBuffer("Key"))' is ignored (./projects/spotbugs/spotbugsTestCases/src/java/gcUnrelatedTypes/ListTests.java:17)
 WARNING: Null dereference occurs in the 's.equals(new java.lang.Object() {})' expression (./projects/spotbugs/spotbugsTestCases/src/java/googleBugs/Issue9.java:12)
 WARNING: Null dereference occurs in the 's.equals(new java.lang.Object() {
     void test() {
@@ -573,6 +576,10 @@ WARNING: Condition 'toBe || (!toBe)' is always true when reached (./projects/spo
 WARNING: Null dereference occurs in the 'x.intValue()' expression (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1551726.java:12)
 WARNING: Null dereference occurs in the 'preparedStmt.close()' expression (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1562060.java:64)
 WARNING: Condition '("mimeTypes=" + mimeTypes) == null' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1627002.java:12)
+WARNING: Condition 'j < baz.size()' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1766405.java:28)
+WARNING: Condition 'j < baz.size()' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1766405.java:48)
+WARNING: Condition 'j < baz.size()' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1766405.java:65)
+WARNING: Condition 'j < baz.size()' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1766405.java:83)
 WARNING: Condition '(b != null)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1817381.java:12)
 WARNING: Condition '(a != null)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1817381.java:16)
 WARNING: Condition '(expected != null)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug1844673.java:11)
@@ -630,6 +637,7 @@ WARNING: Condition 'reqfields != null' is always true when reached (./projects/s
 WARNING: Condition '(pos >= 0)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugs/Bug3572704.java:14)
 WARNING: Condition '(two == null)' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1241.java:14)
 WARNING: Null dereference occurs in the 'p.setName("name2")' expression (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1253.java:24)
+WARNING: Condition 's >= 0' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1315.java:11)
 WARNING: Condition 'nonNegative == (-1)' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1359.java:161)
 WARNING: Condition 'flag' is always false when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1361.java:19)
 WARNING: Condition 'flag' is always true when reached (./projects/spotbugs/spotbugsTestCases/src/java/sfBugsNew/Bug1361.java:27)

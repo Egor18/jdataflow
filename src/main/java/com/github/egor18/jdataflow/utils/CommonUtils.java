@@ -71,7 +71,7 @@ public final class CommonUtils
                     arrayIndex = memory.read(getActualType(index).unbox(), (IntExpr) arrayIndex);
                 }
                 arrayIndex = promoteNumericValue(context, arrayIndex, indexType);
-                targetValue = (IntExpr) memory.readArray((CtArrayTypeReference) getActualType(arrayRead.getTarget()), targetValue, arrayIndex);
+                targetValue = (IntExpr) memory.readArray(getActualType(arrayRead.getTarget()), targetValue, arrayIndex);
             }
             else if (t instanceof CtThisAccess || t instanceof CtSuperAccess)
             {

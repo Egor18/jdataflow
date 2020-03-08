@@ -1,8 +1,9 @@
 package com.github.egor18.jdataflow.summaries.interfaces;
 
-import com.microsoft.z3.Expr;
+import com.github.egor18.jdataflow.summaries.FunctionArgument;
+import com.github.egor18.jdataflow.summaries.FunctionTarget;
 
 public interface EffectFunction
 {
-    void apply(Expr target, Expr[] args);
+    void apply(FunctionTarget target, FunctionArgument[] args);
 }

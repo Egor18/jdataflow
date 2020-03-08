@@ -273,6 +273,15 @@ public class TestInvocation
         if (m2.x == 42) {} //ok
     }
 
+    public native void unknownFunc(Function<Integer, Boolean> o);
+
+    void testIndirectModifications15()
+    {
+        List<Integer> candidateMethods = new ArrayList<>();
+        unknownFunc(candidateMethods::add);
+        if (candidateMethods.isEmpty()) {} //ok
+    }
+
     class TestSuperReset
     {
         class Base

@@ -1,4 +1,7 @@
+WARNING: Condition 'search.getErrors().size() < 0' is always false when reached (./projects/nopol/nopol/src/main/java/fr/inria/lille/repair/nopol/synth/JPFRunner.java:295)
+WARNING: Condition 'results.add(expression)' is always true when reached (./projects/nopol/nopol/src/main/java/fr/inria/lille/repair/synthesis/collect/DataCombiner.java:341)
 WARNING: Condition 'isClassLoaded' is always true when reached (./projects/nopol/nopol/src/main/java/fr/inria/lille/repair/synthesis/collect/DynamothDataCollector.java:247)
+WARNING: Condition 'classes.add(ctTypeReference.getQualifiedName())' is always true when reached (./projects/nopol/nopol/src/main/java/fr/inria/lille/repair/synthesis/collect/spoon/ClassCollector.java:68)
 WARNING: Condition 'success' is always true when reached (./projects/nopol/nopol/src/main/java/xxl/java/compiler/DynamicClassCompiler.java:101)
 WARNING: Condition 'true' is always true when reached (./projects/nopol/nopol/src/test/java/fr/inria/lille/diff/testclasses/Bar.java:6)
 WARNING: Condition 'true' is always true when reached (./projects/nopol/nopol/src/test/java/fr/inria/lille/diff/testclasses/Bar.java:10)

@@ -12,6 +12,7 @@ import spoon.reflect.reference.CtTypeReference;
 
 import static com.github.egor18.jdataflow.utils.PromotionUtils.promoteNumericValue;
 import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
+import static com.github.egor18.jdataflow.utils.TypeUtils.getArrayLengthReference;
 
 /**
  * This checker warns if array index is out of bounds.
@@ -55,7 +56,7 @@ public class ArrayIndexChecker extends AbstractChecker
             return;
         }
 
-        Expr arrayLengthExpr = getMemory().read(getScanner().getArrayLengthFieldReference(), targetExpr);
+        Expr arrayLengthExpr = getMemory().read(getArrayLengthReference(getScanner().getFactory()), targetExpr);
 
         BoolExpr zeroCond = getContext().mkBVSLT((BitVecExpr) indexExpr, getContext().mkBV(0, 32));
         BoolExpr sizeCond = getContext().mkBVSGE((BitVecExpr) indexExpr, (BitVecExpr) arrayLengthExpr);

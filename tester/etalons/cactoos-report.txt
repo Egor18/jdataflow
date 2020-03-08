@@ -1,0 +1,1 @@
+WARNING: Condition 'list.add(1)' is always true when reached (./projects/cactoos/src/test/java/org/cactoos/func/SyncFuncTest.java:51)

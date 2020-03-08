@@ -2,18 +2,22 @@ package com.github.egor18.jdataflow.checkers;
 
 import com.github.egor18.jdataflow.misc.ConditionStatus;
 import com.github.egor18.jdataflow.scanners.CheckersScanner;
+import com.github.egor18.jdataflow.summaries.FunctionArgument;
 import com.github.egor18.jdataflow.summaries.FunctionSummary;
+import com.github.egor18.jdataflow.summaries.FunctionTarget;
 import com.github.egor18.jdataflow.summaries.interfaces.PredicateFunction;
 import com.github.egor18.jdataflow.warning.Warning;
 import com.github.egor18.jdataflow.warning.WarningKind;
 import com.microsoft.z3.Expr;
 import spoon.reflect.code.*;
+import spoon.reflect.declaration.CtTypedElement;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtTypeReference;
 
 import java.util.List;
 
 import static com.github.egor18.jdataflow.utils.CommonUtils.isEllipsisFunction;
+import static com.github.egor18.jdataflow.utils.TypeUtils.getActualType;
 
 /**
  * This checker warns if null dereference occurs in some expression.
@@ -57,7 +61,7 @@ public class NullDereferenceChecker extends AbstractChecker
             return;
         }
 
-        FunctionSummary functionSummary = getScanner().getFunctionSummary(executable);
+        FunctionSummary functionSummary = getScanner().getFunctionSummary(invocation);
         if (functionSummary == null)
         {
             return;
@@ -77,11 +81,14 @@ public class NullDereferenceChecker extends AbstractChecker
             return;
         }
 
-        Expr[] argsExprs = getScanner().getActualArgumentsValues(arguments, formalParameters).toArray(new Expr[0]);
+        Expr[] argsExprs = getScanner().getActualArgumentsValues(invocation).toArray(new Expr[0]);
+        CtTypeReference<?>[] argsTypes = arguments.stream().map(CtTypedElement::getType).toArray(CtTypeReference[]::new);
+        FunctionTarget target = FunctionTarget.getFunctionTarget(targetExpr, getActualType(invocation.getTarget()));
+        FunctionArgument[] args = FunctionArgument.getFunctionArguments(argsExprs, argsTypes);
 
         for (PredicateFunction nullDereferenceCondition : functionSummary.getNullDereferenceConditions())
         {
-            if (checkCond(nullDereferenceCondition.apply(targetExpr, argsExprs)) == ConditionStatus.ALWAYS_TRUE)
+            if (checkCond(nullDereferenceCondition.apply(target, args)) == ConditionStatus.ALWAYS_TRUE)
             {
                 addWarning(new Warning(invocation, WarningKind.NULL_DEREFERENCE_INTERPROCEDURAL));
                 break;

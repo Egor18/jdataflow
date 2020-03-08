@@ -1,1 +1,3 @@
+WARNING: Result of 'fullList.get(fullList.size())' is ignored (./projects/junit4/src/test/java/junit/samples/ListTest.java:49)
+WARNING: Result of 'fFull.get(fFull.size())' is ignored (./projects/junit4/src/test/java/org/junit/samples/ListTest.java:75)
 WARNING: Result of 'a.equals(b)' is ignored (./projects/junit4/src/test/java/org/junit/tests/ObjectContractTest.java:28)

@@ -7,6 +7,7 @@ WARNING: Condition '(cnt < 5)' is always true when reached (./projects/jenkins/c
 WARNING: Condition 'hudson.search.UserSearchProperty.DEFAULT_SEARCH_CASE_INSENSITIVE_MODE' is always true when reached (./projects/jenkins/core/src/main/java/hudson/search/UserSearchProperty.java:32)
 WARNING: Condition '(value != null)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/model/StringParameterDefinition.java:135)
 WARNING: Condition '(!quoted)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/util/ArgumentListBuilder.java:356)
+WARNING: Condition 'store().add(d)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/util/DescriptorList.java:121)
 WARNING: Condition '(0 <= ch)' is always true when reached (./projects/jenkins/core/src/main/java/hudson/util/SecretRewriter.java:200)
 WARNING: Condition 'olderThan != null' is always true when reached (./projects/jenkins/core/src/main/java/jenkins/widgets/HistoryPageFilter.java:213)
 WARNING: Condition 'lib.form.PasswordTest.VulnerableProperty.DescriptorImpl.incomingURL == null' is always true when reached (./projects/jenkins/test/src/test/java/lib/form/PasswordTest.java:200)

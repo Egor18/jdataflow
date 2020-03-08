@@ -1,2 +1,3 @@
 WARNING: Condition 'c == 0' is always true when reached (./projects/sonarqube/sonar-duplications/src/main/java/org/sonar/duplications/detector/original/BlocksGroup.java:113)
+WARNING: Result of 'logTester.logs().contains("There is already a quality profile with name [Sonar way (outdated copy)]")' is ignored (./projects/sonarqube/server/sonar-db-migration/src/test/java/org/sonar/server/platform/db/migration/version/v70/RenameOldSonarQubeWayQualityGateTest.java:94)
 WARNING: Condition 'notImplemented()' is always false when reached (./projects/sonarqube/server/sonar-server/src/main/java/org/sonar/server/computation/task/projectanalysis/scm/ScmInfoRepositoryImpl.java:107)

@@ -1,3 +1,4 @@
+WARNING: Condition 'this.backingList.add(o)' is always true when reached (./projects/spring-framework/spring-core/src/main/java/org/springframework/util/AutoPopulatingList.java:106)
 WARNING: Condition '(getCacheLevel() >= org.springframework.jms.listener.DefaultMessageListenerContainer.CACHE_SESSION)' is always true when reached (./projects/spring-framework/spring-jms/src/main/java/org/springframework/jms/listener/DefaultMessageListenerContainer.java:1211)
 WARNING: Condition 'actualContentType != null' is always true when reached (./projects/spring-framework/spring-test/src/main/java/org/springframework/test/web/client/match/ContentRequestMatchers.java:102)
 WARNING: Condition 'handler != null' is always true when reached (./projects/spring-framework/spring-test/src/main/java/org/springframework/test/web/servlet/result/HandlerResultMatchers.java:70)

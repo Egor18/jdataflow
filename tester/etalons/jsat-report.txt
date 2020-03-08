@@ -3,6 +3,7 @@ WARNING: Condition 'wIV.getIndex() > xIV.getIndex()' is always true when reached
 WARNING: Condition '(i_low == (-1))' is always false when reached (./projects/jsat/JSAT/src/jsat/classifiers/svm/PlattSMO.java:342)
 WARNING: Condition 'inner_loop_success' is always true when reached (./projects/jsat/JSAT/src/jsat/classifiers/svm/PlattSMO.java:1371)
 WARNING: Condition 'split_scores == null' is always false when reached (./projects/jsat/JSAT/src/jsat/classifiers/trees/DecisionStump.java:511)
+WARNING: Condition '(orderIndex + 1) < orderedFile.size()' is always true when reached (./projects/jsat/JSAT/src/jsat/clustering/OPTICS.java:389)
 WARNING: Condition '(k <= (highK - 1))' is always true when reached (./projects/jsat/JSAT/src/jsat/clustering/hierarchical/DivisiveGlobalClusterer.java:201)
 WARNING: Condition '(designations == null)' is always false when reached (./projects/jsat/JSAT/src/jsat/clustering/kmeans/XMeans.java:202)
 WARNING: Condition 'node.indx == i' is always false when reached (./projects/jsat/JSAT/src/jsat/datatransform/visualization/TSNE.java:420)

@@ -60,9 +60,10 @@ public class InterproceduralAnalyzer
 
         currentFunctionSummary.addEffect((target, args) ->
         {
-            BoolExpr throwConditionExpr = (BoolExpr) currentFunctionConditions.substitute(currentFunctionParameters, args);
-            BoolExpr returnConditionExpr = (BoolExpr) currentFunctionReturnExpr.substitute(currentFunctionParameters, args);
-            BoolExpr throwExpr = (BoolExpr) currentFunctionThrowExpr.substitute(currentFunctionParameters, args);
+            Expr[] argsExprs = Arrays.stream(args).map(a -> a.expr).toArray(Expr[]::new);
+            BoolExpr throwConditionExpr = (BoolExpr) currentFunctionConditions.substitute(currentFunctionParameters, argsExprs);
+            BoolExpr returnConditionExpr = (BoolExpr) currentFunctionReturnExpr.substitute(currentFunctionParameters, argsExprs);
+            BoolExpr throwExpr = (BoolExpr) currentFunctionThrowExpr.substitute(currentFunctionParameters, argsExprs);
             BoolExpr condExpr = context.mkAnd(throwConditionExpr, context.mkNot(returnConditionExpr));
             scanner.setThrowExpr((BoolExpr) context.mkITE(condExpr, throwExpr, scanner.getThrowExpr()));
             inferThrowEffect(scanner.getCurrentInvocation());
@@ -143,23 +144,24 @@ public class InterproceduralAnalyzer
         final BoolExpr currentFunctionReturnExpr = scanner.getReturnExpr();
         final BoolExpr currentFunctionThrowExpr = scanner.getThrowExpr();
 
-        final BiFunction<Expr, Expr[], BoolExpr> getImplicationExpr = (target, args) ->
+        final BiFunction<FunctionTarget, FunctionArgument[], BoolExpr> getImplicationExpr = (target, args) ->
         {
-            BoolExpr dereferenceConditionExpr = (BoolExpr) currentFunctionConditions.substitute(currentFunctionParameters, args);
-            BoolExpr returnConditionExpr = (BoolExpr) currentFunctionReturnExpr.substitute(currentFunctionParameters, args);
-            BoolExpr throwExpr = (BoolExpr) currentFunctionThrowExpr.substitute(currentFunctionParameters, args);
+            Expr[] argsExprs = Arrays.stream(args).map(a -> a.expr).toArray(Expr[]::new);
+            BoolExpr dereferenceConditionExpr = (BoolExpr) currentFunctionConditions.substitute(currentFunctionParameters, argsExprs);
+            BoolExpr returnConditionExpr = (BoolExpr) currentFunctionReturnExpr.substitute(currentFunctionParameters, argsExprs);
+            BoolExpr throwExpr = (BoolExpr) currentFunctionThrowExpr.substitute(currentFunctionParameters, argsExprs);
             BoolExpr condExpr = context.mkAnd(scanner.getState(), dereferenceConditionExpr, context.mkNot(returnConditionExpr), context.mkNot(throwExpr));
 
             BoolExpr implicationExpr;
             if (previousImplicationExpr == null)
             {
-                Expr actualParameterExpr = targetExpr.substitute(currentFunctionParameters, args);
+                Expr actualParameterExpr = targetExpr.substitute(currentFunctionParameters, argsExprs);
                 BoolExpr notNullExpr = context.mkDistinct(actualParameterExpr, scanner.getMemory().nullPointer());
                 implicationExpr = context.mkImplies(condExpr, notNullExpr);
             }
             else
             {
-                BoolExpr actualPreviousImplicationExpr = (BoolExpr) previousImplicationExpr.substitute(currentFunctionParameters, args);
+                BoolExpr actualPreviousImplicationExpr = (BoolExpr) previousImplicationExpr.substitute(currentFunctionParameters, argsExprs);
                 implicationExpr = context.mkImplies(condExpr, actualPreviousImplicationExpr);
             }
 
@@ -184,7 +186,7 @@ public class InterproceduralAnalyzer
                                                  .map(p -> (Expr) p.getMetadata("value"))
                                                  .toArray(Expr[]::new);
 
-            if (Arrays.stream(args).noneMatch(arg -> isParameter(arg, currentInvocationParentExecutableParameters)))
+            if (Arrays.stream(args).noneMatch(arg -> isParameter(arg.expr, currentInvocationParentExecutableParameters)))
             {
                 return;
             }
